@@ -28,3 +28,8 @@ RUN git submodule init
 RUN git submodule update --recursive
 RUN ./configure --target-list=aarch64-softmmu
 RUN make
+
+WORKDIR /
+
+# install The ARM toolchain
+RUN DEBIAN_FRONTEND=noninteractive apt-get -yq install gcc-aarch64-linux-gnu
