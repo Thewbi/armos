@@ -252,8 +252,10 @@ RUN git submodule update --recursive
 RUN ./configure
 ```
 
-or if you only want ARM support. This will speed up the compilation of qemu by hours.
+or if you only want ARM support, add the target parameter and specify aarch64-softmmu.
+This will speed up the compilation of qemu by hours.
 It is strongly recommended to compile for a specific target if you do not want to wait for hours.
+At the same time the resulting qemu will only emulate aarch64.
 
 ```
 RUN ./configure --target-list=aarch64-softmmu
@@ -285,7 +287,8 @@ necessary for bug hunting and releasing version of your software. A distributed 
 allows several developers to work together on a single code base.
 
 With git, the general idea is that a software repository exists, which is called the remote repository.
-Every developer sends their changes to the remote repository. Sending changes is called pushing.
+Every developer sends their changes to the remote repository. Sending changes is called pushing. Also every
+developer gets the latest changes by receiving files from the remote repository which is called pulling.
 
 This remote repository is first copied onto your local harddrive which is called cloning.
 Once cloned, changes can be made to the code. Every changed file has to be transfered from
@@ -320,9 +323,11 @@ to be manually resolved by the two developers that have changed the line! This c
 blood, tiers and anger...
 
 Not only can there be conflicts when merging two different branches together. It is also possible
-that you work on a branch which other developers also have checked out. That means changes can be
-pushed to the same remote branch by different developers simultaneaously. This in turn opens up the
-situation where changes are present in the remote branch that you do not have on your local copy.
+that you work on the same branch that other developers also have checked out. That means changes can be
+pushed to the same remote branch by different developers simultaneously. This in turn opens up the
+situation where changes are present in the remote branch that you do not have on your local copy
+while you have made local changes.
+
 When loading data to your local copy, which is called pulling, you can get conflicts if you have
 locally changed a file on a specific line that some other developer has also changed and pushed their
 changes.
@@ -330,7 +335,8 @@ changes.
 Now that some of the most relevant git concepts are talked about, there is one aspect that will make
 everything easier for the beginner. This fact is that for following this course, you are most likely
 the sole programmer in your OS project and hence conflicts are minimized and you do not have to care
-about merging and conflict solving.
+about merging and conflict solving. The only thing you care about is make sure your code is save and
+does not get lost.
 
 To transfer changed files, the following steps are necessary
 
@@ -349,11 +355,24 @@ Git will only transfer commits. A commit is created from the current staging are
 Files that are not part of the staging area will not be part of a commit even if they are changed or added.
 To add a file to the staging area, the git add command is used.
 
+```
+git add *
+```
+
 Once a subset or all files are staged, the staging area has to be commited.
 When a commit is performed, git automatically stores the entire staging area in the commit.
+To perform a commit, the command git commit is used. You have to specify a comment.
+
+```
+git commit -m "comment goes here"
+```
 
 Once you have a local commit, you can transfer that local commit to the remote branch. This is done via the
 git push command.
+
+```
+git push
+```
 
 Because staging and commiting are separate from one another. You can first commit several times before transfering
 all commits. Git allows you to work offline by first commiting locally several times. Then, when you to get back
@@ -368,7 +387,7 @@ Let's commit the current development environment to github.
 
 ```
 $ cd /Users/bischowg/dev/osdev/os
-$ git add \*
+$ git add *
 $ git commit -m "initial commit"
 $ git push
 ```
@@ -383,7 +402,7 @@ $ git pull origin main
 $ git push --set-upstream origin main
 $ git add *
 $ git commit -m "initial commit"
-\$ git push
+$ git push
 ```
 
 As a last part, we add a .dockerignore and add the entry README.md to it.
