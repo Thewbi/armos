@@ -1,7 +1,7 @@
 # Baremetal Assembler
 
 This section is heavily inspired by https://github.com/bztsrc/raspi3-tutorial/blob/master/01_bareminimum
-You shoud check out this very good write first.
+You shoud check out this very good writeup first.
 
 ## Introduction
 
@@ -94,8 +94,8 @@ SECTIONS
 The SECTIONS block defines all sections. The dot places the section marker at 0x80000 which is where aarch64
 starts executing code. then a .text section is defined. Because the marker was not moved, .text starts at
 0x80000. .text is the section that was used in the source file, hence this linker script takes the .text section
-from the object file as an input and relocates this section to 0x80000. It is the relocated and contained
-whithin the .elf file which is the output of the linker stage.
+from the object file as an input and relocates this section to 0x80000. It is then relocated and put
+into the .elf file which is the output of the linker stage.
 
 Now link the start.o object file to a .elf executable.
 
@@ -117,7 +117,7 @@ operating system to retrieve the code stored within the .elf. The ARM CPU does n
 .elf format and we also do not have an operating system which can interpret .elf at this point so
 .elf is useless to us.
 
-The way to process from here is to extract the compiled and relocated machine code from the .elf file
+The way to proceed from here is to extract the compiled and relocated machine code from the .elf file
 to arrive at the kernel image.
 
 To extract the kernel image from the .elf use the object copy tool:
@@ -148,13 +148,16 @@ If you want to know what Qemu is doing, add the -d in_asm flag.
 
 Qemu will output, amongst other things:
 
+```
 ---
 
 IN:
-0x00080000: d503205f wfe  
+0x00080000: d503205f wfe
 0x00080004: 17ffffff b #0x80000
+```
 
-This is the code from start.S
+You will recognize this code from the start.S. Qemu is executing the assembler code that was written
+in Step 1.
 
 ### Step 6 - Writing a Makefile
 
@@ -185,7 +188,7 @@ make will execute the recipe to create current targets. If the target is as old 
 make will not run any recipe and it will speed up the build that way. The idea is only perform
 rules if prerequisits have changed.
 
-On a more concrete level, prerequsist are assembly files, outputs are object files.
+On a more concrete level, prerequisits are assembly files, outputs are object files.
 Also the kernel extraction from .elf can be formulated as a make rule.
 The qemu emulator can be started using a phony target. A phony target has no prerequisits.
 
@@ -214,7 +217,10 @@ With this makefile in the folder, typeing make in the command line will create a
 make
 ```
 
-Typing make run will not compile the code. Instead is will run qemu with a already compiled kernel.img
+make without parameters will execute the first rule which is the all rule.
+All calls the clean rule and the kernel.img rule.
+
+Typing make run will not compile the code. Instead is will run qemu with a already compiled kernel.img.
 That means you have to call make at least once before make run will work.
 
 ```
