@@ -86,15 +86,18 @@ make
 /tmp/qemu/aarch64-softmmu/qemu-system-aarch64 -nographic -M raspi3 -kernel kernel8.img -serial stdio
 ```
 
-Q: Unable to init server: Could not connect: Connection refused
-gtk initialization failed
+Q: Unable to init server: Could not connect: Connection refused\
+gtk initialization failed\
 A: Use -nographic
 
-Q: EMU 5.0.1 monitor - type 'help' for more information
-(qemu) qemu-system-aarch64: -serial stdio: cannot use stdio by multiple character devices
-qemu-system-aarch64: -serial stdio: could not connect serial device to character backend 'stdio'
+Q: EMU 5.0.1 monitor - type 'help' for more information\
+(qemu) qemu-system-aarch64: -serial stdio: cannot use stdio by multiple character devices\
+qemu-system-aarch64: -serial stdio: could not connect serial device to character backend 'stdio'\
 A: Start without -serial stdio
+
+```
 /tmp/qemu/aarch64-softmmu/qemu-system-aarch64 -nographic -M raspi3 -kernel kernel8.img
+```
 
 ## How can I terminate qemu?
 
@@ -106,6 +109,8 @@ This means, press and hold Ctrl then press a, release Ctrl and a, then press x
 https://bertrand.tognoli.fr/todo/work/MyOwnKernel.html
 
 ## USB Stack
+
+https://github.com/Chadderz121/csud
 
 You need the USB stack not only for USB devices but also for the ethernet connection,
 because the ethernet connection is implemented as a hardware chip that actually converts USB to Ethernet.

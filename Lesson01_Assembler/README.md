@@ -86,8 +86,12 @@ Save the following file as link.ld
 ```
 SECTIONS
 {
-. = 0x80000;
-.text : { \*(.text) }
+    . = 0x80000;
+
+    .text :
+    {
+        *(.text)
+    }
 }
 ```
 
@@ -96,6 +100,11 @@ starts executing code. then a .text section is defined. Because the marker was n
 0x80000. .text is the section that was used in the source file, hence this linker script takes the .text section
 from the object file as an input and relocates this section to 0x80000. It is then relocated and put
 into the .elf file which is the output of the linker stage.
+
+The wildcard notation \*(.text) tells the linker to extract all .text sections from all object files that are
+fed into it. If you want to exclude .text sections from certain object files, you have to adjust this expression
+to exclude that particular object file. In this case, there is only a single object file and we want it's .text
+section so the linker script above works fine.
 
 Now link the start.o object file to a .elf executable.
 
