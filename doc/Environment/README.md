@@ -5,13 +5,13 @@ and test the OS quickly before moving it to real hardware.
 
 Breaking this top level goal down into more concrete subgoals yields:
 
-1. use Docker to run a linux OS on any host OS to unify the development environment.
+1. Use Docker to run a Linux OS on any host OS to unify the development environment.
 
-2. use a emulator to run the OS on the Broadcom BCM2837B0, Cortex-A53 (ARMv8) 64-bit.
+2. Use a emulator to run the OS on the Broadcom BCM2837B0, Cortex-A53 (ARMv8) 64-bit.
 
 3. Install a toolchain that produces code for the Broadcom BCM2837B0, Cortex-A53 (ARMv8) 64-bit.
 
-4. commit everything into github for versioning and easy access to the code on any Computer.
+4. Commit everything into github for versioning and easy access to the code on any Computer.
 
 ## Subgoal 1) - Setting up a Docker Environment
 
