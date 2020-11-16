@@ -154,15 +154,124 @@ TODO ??? what is the semantics of that and when is it usefull??? Way over my hea
 
 ## start.S
 
-TODO: how does the stack setup work in this file?
+start.S sets up the stack and clears the .bss section.
+
+How does the stack setup work and why do you have to initialize .bss to zero?
+A very good explanation is given here: https://jsandler18.github.io/explanations/boot_S.html
+
+The kernel is loaded by the hardware to address 0x80000 for 64 bit ARM and to 0x8000 for 32 bit ARM.
+The kernel grows towards higher adresses. That is why it is safe to start the C-runtime stack at 0x80000
+or 0x8000 for 32 bit and let it grow downwards towards the address 0. It won`t override the kernel.
+
+The initialization to zero of the .bss section is required as .bss takes up global variables during
+compilation. The C runtime specification says that global variables initially have the value 0.
+This is achieved by zeroing out .bss manually as the compile does not perform this operation for us.
+
+### Initializing the stack
+
+```
+ldr     x1, =_start
+mov     sp, x1
+```
+
+The variable \_start is a label defined in the assembler file itself and points to the first byte
+of the kernel code. ldr loads that address into x1. move then copies the value of x1 to sp.
+sp is the stack pointer.
+
+Now the stack pointer points to the beginning of the kernel code in memory. The stack pointer will
+grow downwards toward zero whereas the kernel code is layed out towards higher addresses. This means
+the stack will not grow into the kernel and it will not damage the kernel.
+
+The only issue is that the stack pointer register sp points to the first byte of the kernel.
+How is the first byte not overriden when the stack is used for the first time? The answer is that
+the first stack instruction better be a push instruction and not a pop instruction. A pop instruction
+before a push instruction would be a programming mistake. So if it is assumed that a push happens first,
+then the stack pointer is decremented (stack grows downwords) and after that the value is pushed.
+That means that the first push operation does not override the first byte in the kernel because the
+stack pointer is decremented before a value is written. That means the push does not write data into the
+kernel at all.
+
+### Clearing .bss / Filling .bss with zeroes
+
+.bss is cleared with this piece of assembly:
+
+```
+    // clear bss
+    ldr     x1, =__bss_start
+    ldr     w2, =__bss_size
+3:  cbz     w2, 4f
+    str     xzr, [x1], #8
+    sub     w2, w2, #1
+    cbnz    w2, 3b
+```
 
 The first thing of importance is that start.S uses the variables \_\_bss_start and \_\_bss_size.
 These variables are defined by the linker script link.ld.
 
-The part that clears the .bss section will first determine how many bytes the .bss section has and
-it will iterate over all bytes. Once it is done it jumps to the main function of the C application.
+Another point is the use of registers called x and w. x is a 64 bit register whereas w are the lower
+32 bit of a 64 bit register. For example x1 and w1 both use the register 1 but x1 uses all 64 bits
+of register 1 whereas w1 only uses the lower 32 bit of register 1. (https://developer.arm.com/architectures/learn-the-architecture/aarch64-instruction-set-architecture/registers-in-aarch64-general-purpose-registers)
 
-TODO: explain every assembler instruction! What value is written into the bytes of the .bss section?
+The code above that clears the .bss section will first determine how many bytes the .bss section has and
+it will then iterate over all bytes. Once it is done, it jumps to the main function of the C application.
+
+```
+ldr     x1, =__bss_start
+```
+
+loads \_\_bss_start into the register x1 using the pseudo instruction ldr (https://www.keil.com/support/man/docs/armasm/armasm_dom1361289875065.htm). Do not confuse the pseude instruction ldr with the real instruction ldr. The difference
+is the equals sign prefixed to the variable \_\_bss_start.
+
+```
+ldr     w2, =__bss_size
+```
+
+loads \_\_bss_size into the register w2. Again it uses the pseudo ldr.
+
+```
+3:  cbz     w2, 4f
+```
+
+Defines the label 3, then calls cbz (Compare and Branch on Zero) which jumps to the label 4 (f)orward searched if
+the register w2 contains a zero. Otherwise just increments the instruction pointer so that the next instruction
+is executed. This basically is the loop condition, which is loop unless w2 is zero.
+
+```
+str     xzr, [x1], #8
+```
+
+This line uses the (immediate offset) variant of str (store) (https://www.keil.com/support/man/docs/armasm/armasm_dom1361289906890.htm). This line will take the value that is
+currently contained in the xzr register and writes it into memory using an address that is computed using
+x1 as a base and an immediate offset of 8 added on top of the base.
+
+NOTE START: I am not sure if the following explanation of STR is actually true or not... Handle with care!
+
+STR will then update the base register
+x1 with the computation x1 = x1 + #8. The offset of #8 is 8x8 byte = 64 byte which is one the next DWord.
+
+The str instruction with an immediate offset is the reason why the loop walks over every DWORD in the
+.bss section and writes a zero into it.
+
+NOTE END: From here on I am sure again.
+
+The register xzr is special (https://stackoverflow.com/questions/42788696/why-might-one-use-the-xzr-register-instead-of-the-literal-0-on-armv8)
+
+xzr apparently is synonymous to zero in most cases. Using xzr saves the CPU from using a register
+to store the value 0 before assigning that zero to another register. Instead using xzr the zero
+immediately finds its way into the destination register without taking up a register in between.
+
+```
+sub     w2, w2, #1
+```
+
+Decrements w2 by one. As w2 initially stores \_\_bss_size this moves the loop to the next byte.
+
+```
+cbnz    w2, 3b
+```
+
+Uses Compare and Branch on Non-Zero with the register w2 and moves back to the label 3 unless
+w2 is zero in which case the next instruction is executed and no jump is performed.
 
 ## Trash
 

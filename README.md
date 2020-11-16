@@ -4,8 +4,12 @@ These notes and code are the preparation for a coures that I hopefully can monet
 
 ## Links
 
+https://jsandler18.github.io/
 https://github.com/bztsrc/raspi3-tutorial
 https://github.com/s-matyukevich/raspberry-pi-os
+https://leiradel.github.io/2019/01/28/Bss-and-Peripheral-Base.html
+https://leiradel.github.io/2019/02/10/The-Mini-UART.html
+https://azeria-labs.com/memory-instructions-load-and-store-part-4/
 
 ## Development Board
 
