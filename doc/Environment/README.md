@@ -7,7 +7,7 @@ Breaking this top level goal down into more concrete subgoals yields:
 
 1. Use Docker to run a Linux OS on any host OS to unify the development environment.
 
-2. Use a emulator to run the OS on the Broadcom BCM2837B0, Cortex-A53 (ARMv8) 64-bit.
+2. Use an emulator for the Broadcom BCM2837B0, Cortex-A53 (ARMv8) 64-bit to run the OS.
 
 3. Install a toolchain that produces code for the Broadcom BCM2837B0, Cortex-A53 (ARMv8) 64-bit.
 
@@ -29,7 +29,7 @@ $ cd armos
 
 You can name it whatever you like but you have to replace all occurences for the commands to work.
 
-Install Docker as described in the chapter == Docker ==
+Install Docker as described in the chapter [Docker](../Docker/README.md)
 
 Writeing a Dockerfile:
 
@@ -61,7 +61,7 @@ The image_name and tag are optional. In software development, when versioning is
 to fix a name and version of a specific development state, so that should bugs occur later, you
 can go to that specific point in development and fix the bug. This is what is called tagging software.
 
-The tag latest will always be your set to your latest release or latest development image.
+The tag _latest_ will always be set to your latest release or latest development image.
 This allows people to easily retrieve the current version you are working on by convention.
 
 Here the latest tag is set and the name os is used.
@@ -77,7 +77,7 @@ You can also type
 $ docker images
 ```
 
-Both result in a list of images that your Docker installation has downloaded and can be started.
+Both result in a list of images that your Docker installation has downloaded and that can be started.
 That list now contains the os:latest Docker image.
 
 To test the image, start it:
@@ -86,20 +86,20 @@ To test the image, start it:
 $ docker start os
 ```
 
-In docker desktop, change to the 'Images' section via the navigation on the lefthan side.
+Alternatively using docker desktop, change to the 'Images' section via the navigation on the lefthan side.
 Locate the os image and click Run.
 Docker Desktop automatically switches to the 'Containers / Apps' Section.
 Here one instance of the os container should be contained. Locate that container and
-open a shell by clicking the CLI button to the Ubuntu Linux running inside the container.
+open a shell to the Ubuntu Linux running inside the container by clicking the CLI button.
 
-A shell opens. To test let's output the Ubuntu version:
+A shell opens. As a test let's output the Ubuntu version:
 
 ```
 $ uname -a
 $ cat /etc/\*release
 ```
 
-### Mounting Folders from Host to Container
+### Mounting Folders from the host OS to containerized OS
 
 Another feature of Docker that we need is to mount a folder from the host machine into
 a running Docker image. This feature is used to edit code on the Host machine using

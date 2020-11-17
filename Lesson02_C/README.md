@@ -15,8 +15,10 @@ section has to be initialized with zeroes.
 
 ## Relative label resolution (f)orward and (b)ehind.
 
-https://stackoverflow.com/questions/27353096/1b-and-1f-in-gnu-assembly
-https://stackoverflow.com/questions/48084634/what-does-b-mean-in-this-assembly-code
+- https://stackoverflow.com/questions/27353096/1b-and-1f-in-gnu-assembly
+- https://stackoverflow.com/questions/48084634/what-does-b-mean-in-this-assembly-code
+
+start.S sets up the stack and initializes .bss with zeroes.
 
 To understand start.S, first it is necessary to learn about the extension of gcc that allows
 you to reference labels using the (f)orward and (b)ehind flags.
@@ -110,12 +112,14 @@ to remove unused sections that are not referenced from anywhere. root sections r
 other sections but they are not referenced themselves. KEEP prevents the linker from
 removing your root sections.
 
-### The \*() Notation
+### The \*(...) Notation
 
-Remember lesson 01, where the linker script was explained and the _() notation was mentioned.
+Remember lesson 01, where the linker script was explained and the \*(...) notation was mentioned?
+
 It is a wildcard that includes all object files that are fed into the linker. The linker will
-now extract and copy all sections within the _() notation from those object files. If a specific
-object file has to be excluded, the wildcard notation has to be adjusted.
+now extract and copy all sections within the \*(...) notation from all those object files.
+
+If a specific object file has to be excluded, the wildcard notation has to be adjusted.
 
 ### linkonce
 
@@ -169,21 +173,30 @@ This is achieved by zeroing out .bss manually as the compile does not perform th
 
 ### Initializing the stack
 
+Initializing the stack means to set a address into the stack pointer (sp) register. The assembly
+instructions that make use of the stack will automatically use the stack pointer register and assume
+that it points to a location in memory where data can be stored without overriding any important
+data.
+
+The stackpointer is set up in two lines of code.
+
 ```
 ldr     x1, =_start
 mov     sp, x1
 ```
 
 The variable \_start is a label defined in the assembler file itself and points to the first byte
-of the kernel code. ldr loads that address into x1. move then copies the value of x1 to sp.
-sp is the stack pointer.
+of the kernel code. ldr loads that address into x1. mov then copies the value of x1 to sp.
+sp is the stack pointer register.
 
 Now the stack pointer points to the beginning of the kernel code in memory. The stack pointer will
 grow downwards toward zero whereas the kernel code is layed out towards higher addresses. This means
 the stack will not grow into the kernel and it will not damage the kernel.
 
-The only issue is that the stack pointer register sp points to the first byte of the kernel.
-How is the first byte not overriden when the stack is used for the first time? The answer is that
+The only issue is that the stack pointer register sp points to the first byte of the kernel initially.
+How is the first byte not overriden when the stack is used for the first time?
+
+The answer is that
 the first stack instruction better be a push instruction and not a pop instruction. A pop instruction
 before a push instruction would be a programming mistake. So if it is assumed that a push happens first,
 then the stack pointer is decremented (stack grows downwords) and after that the value is pushed.
