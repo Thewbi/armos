@@ -2,14 +2,37 @@
 
 These notes and code are the preparation for a coures that I hopefully can monetize some day on some learning platform.
 
+## Books
+
+Raspbian OS Programming with the Raspberry Pi
+
 ## Links
 
+- https://de.wikipedia.org/wiki/Raspberry_Pi
+- https://github.com/thibmaek/awesome-raspberry-pi
+- https://socialcompare.com/en/comparison/raspberrypi-models-comparison
+- https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/
 - https://jsandler18.github.io/
 - https://github.com/bztsrc/raspi3-tutorial
 - https://github.com/s-matyukevich/raspberry-pi-os
 - https://leiradel.github.io/2019/01/28/Bss-and-Peripheral-Base.html
 - https://leiradel.github.io/2019/02/10/The-Mini-UART.html
 - https://azeria-labs.com/memory-instructions-load-and-store-part-4/
+- https://www.lowlevel.eu/wiki/ARM-OS-Dev_f%C3%BCr_Einsteiger
+
+ARM Documentation
+
+Some general tips for the ARM website. When visiting a link to a document on the ARM website such as the ARMv5 reference manual for example, the page that loads in many cases does not directly contain the document in HTML form! It oftentimes does not even contain a link to download the PDF version! Instead you have to understand the web design of the ARM website. The ARM website contains a bar with more or less randomly selected actions such as switching between the light and dark theme. One of those options is a "Download" option. This is where you actually get access to the PDF version of the document you were looking for.
+
+![ARM WebSite Document Download](resources/ARMWebSiteDocumentDownload.png)
+
+Also the [ARMv5 Architecture Reference Manual](https://developer.arm.com/documentation/ddi0100/i/) describes ARMv4 and ARMv6 in a single PDF document. Only ARMv7, ARMv8 and all subsequent architectures received their indivdual documentation.
+
+- [ARM Introduction to the Cortex-A53](https://developer.arm.com/ip-products/processors/cortex-a/cortex-a53)
+- [ARM Learn the Architecture Cortex-A53](https://developer.arm.com/architectures/learn-the-architecture)
+- [ARM Exploration Tools](https://developer.arm.com/architectures/cpu-architecture/a-profile/exploration-tools)
+- [ARM Assembly Instructions](https://developer.arm.com/docs/ddi0596/i/base-instructions-alphabetic-order)
+- [Programmers Guid](https://developer.arm.com/documentation/den0024/a/preface)
 
 ## Development Board
 
@@ -53,6 +76,14 @@ The Raspberry Pi 3 Model B+ is the final revision in the Raspberry Pi 3 range.
 ## Lesson 2 - Programming in C
 
 [Programming in C](Lesson02_C/README.md)
+
+## Lesson 3 - printf in C
+
+[printf in C](Lesson03_printf/README.md)
+
+## Lesson 4 - Virtual Memory
+
+[Virtual Memory](Lesson04_VirtualMemory/README.md)
 
 ## Running the kernel on qemu
 

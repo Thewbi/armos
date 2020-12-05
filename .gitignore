@@ -34,3 +34,8 @@
 *.exe
 *.out
 *.app
+
+# folders
+/rpi3b-bare-metal/*
+/raspberrypi/*
+/arm-tutorial-rpi/*

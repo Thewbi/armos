@@ -164,8 +164,8 @@ RUN sed -i 's/# deb-src/deb-src/g' /etc/apt/sources.list
 RUN apt-get update
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -yq build-dep qemu
-
 RUN DEBIAN_FRONTEND=noninteractive apt-get -yq install git
+RUN DEBIAN_FRONTEND=noninteractive apt-get -yq install vim
 
 RUN cd tmp
 RUN git clone https://github.com/qemu/qemu.git
@@ -197,7 +197,7 @@ The qemu executable is located here after the build:
 /tmp/qemu/aarch64-softmmu/qemu-system-aarch64
 ```
 
-## Subgoal 3 - Install The ARM toolchain
+## Subgoal 3 - Install The ARM 64 bit toolchain
 
 The toolchain is available prepackaged via apt.
 
