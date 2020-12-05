@@ -1,6 +1,8 @@
 # kernel elf and images
 *.elf
 *.img
+*.map
+*.list
 
 # Prerequisites
 *.d

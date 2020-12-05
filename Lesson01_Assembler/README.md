@@ -19,6 +19,17 @@ The programming workflow is as follows:
 5. Running - The kernel image is copied onto a SD Card or run in an emulator.
 6. Writing a Makefile - For convenience, automate the process using make
 
+### The CPU
+
+There is a very good Youtube Video explaining the CPU in the series by Steve Hallady on Jamie King's channel [here](https://www.youtube.com/watch?v=Am82a8D4EOI&list=PLRwVmtr-pp05PQDzfuOOo-eRskwHsONY0&index=3).
+
+The CPU contains
+
+- Registers (15 registers, R1-R12 are general purpose. R13 is the stack pointer (sp) for transient data. R14 is link register holds the return address on calls of a subroutine. R15 is programm counter (pc) that points to the next instruction to execute in memory.)
+- ALU (Arithmetic Logic Unit for Adding, Subtracting, Bit-Wise manipulation, has a shifter for bit shifts)
+- Special Registers (Instruction Register holds the fetche instruction that pc pointed to, CPSR = Current Processor Status Register, SPSR = used to save CPSR during interrupt/exception handling, Flag-Register (= NZCVQ flags and CPU mode))
+- Control Unit
+
 ### Step 1 - Writing Code
 
 https://azeria-labs.com/writing-arm-assembly-part-1/
@@ -31,7 +42,7 @@ wfe - wait for event (https://www.keil.com/support/man/docs/armasm/armasm_dom136
 b - branch (https://www.keil.com/support/man/docs/armasm/armasm_dom1361289863797.htm)
 The B instruction causes a branch to label.
 
-The code used is, save it as start.S:
+Save the following code to a file called start.S:
 
 ```
 .section ".text"
@@ -46,7 +57,7 @@ main:  wfe
 _.section ".text"_ creates a section that will contain the code below.
 This section is then later read by the linker and relocated to a correct address.
 
-_.global \_start_ defines the \_start: label as the entry point of the application.
+_.global \_start_ defines the \_start: label as the entry point of the application. _.global or _.globl makes a label or variable visible to the linker. A C compiler will add the _.global assembler instruction to all variables unless you add the static keyword. If you write assembler code, you have to add _.global to all labels or variables that the linker should be able to see yourself. \_start has to be global because as a convention the gnu linker will look for the \_start label and interpret it as the entry point to the application. (There is a command line option to change the label name for the entry point but \_start\_ is fine, so it is not changed) See [DWelch on Assembler](https://github.com/dwelch67/raspberrypi/tree/master/baremetal)
 
 ```
 main:  wfe
