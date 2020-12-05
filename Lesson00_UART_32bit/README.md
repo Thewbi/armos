@@ -48,10 +48,10 @@ The pinout is taken from [here](https://de.pinout.xyz/pinout/uart)
 
 By default, both UARTs have to be enabled in the config.txt file on the raspberry pi's sd card.
 
-https://www.raspberrypi.org/forums/viewtopic.php?t=223736
-https://www.raspberrypi.org/forums/viewtopic.php?t=175527
-https://raspberrypi.stackexchange.com/questions/63468/uart-send-receive-not-working
-http://www.netzmafia.de/skripten/hardware/RasPi/RasPi_Serial.html
+- https://www.raspberrypi.org/forums/viewtopic.php?t=223736
+- https://www.raspberrypi.org/forums/viewtopic.php?t=175527
+- https://raspberrypi.stackexchange.com/questions/63468/uart-send-receive-not-working
+- http://www.netzmafia.de/skripten/hardware/RasPi/RasPi_Serial.html
 
 Starting with the Raspberry Pi 3, the UART configuration was removed apparently it conflicted with the WiFi connection.
 
@@ -90,7 +90,7 @@ I tested it on a RPI 2 Model v1.1 and a RPI 1 Model B+.
 
 ## UART on QEmu
 
-The support for UART in qemu is a bit of a mystery to me. Some forum entries on the internet say, that only PL011 is supported by qemu. I have seen the valvers code work on qemu with the MiniUART, so the information seems not to be accurate.
+The support for UART in qemu is a bit of a mystery to me. Some forum entries on the internet say, that only PL011 is supported by qemu and MiniUART is not. I have seen the valvers code work on qemu with the MiniUART, so the information seems not to be accurate.
 
 Another point is that the PL011 works for me when I run the .elf file of the kernel in qemu and it does not work, when I run the object dumped .img version of the kernel! So qemu treats .elf different than .img or my .img is broken.
 
@@ -98,13 +98,15 @@ The general takeaway is to try and find out what works on your version of qemu. 
 
 ## How to interpret Addresses
 
+This section uses addresses for the RPi 1 Model B+. If you use another RPi revision, adjust the addresses accordingly.
+
 The document "BCM2835 ARM Peripherals" contains a mapping of addresses on page 5. The left address space is what the CPU sees. The VC/ARM MMU (VC/ARM Memory Management Unit) maps the CPU addresses to the so-called ARM Physical Addresses. This address space is what the custom kernel will operate on.
 
 The right column is the address space as is configured by a linux implementation which does not concern a custom os developer. The problem is that all addresses described in the document are listed in terms of the right column! There has to be a way to convert the peripheral addresses from the right column to the center column so that the manual can be used as a reference for custom os development. That mapping is described now.
 
 The middle column is what matters for custom kernel development. You can see that the "I/O Peripherals" are mapped to the address 0x20000000. Section (1.2.3 ARM physical addresses) states that the perihperals are mapped to the address range 0x20000000 to 0x20FFFFFF.
 
-Also in [this](https://www.youtube.com/watch?v=U9H7TmRt64A&list=PLRwVmtr-pp05PQDzfuOOo-eRskwHsONY0&index=4) video, Steve Halladay mentions that the base address x2000000 has something to do with the processor mode which I do not fully understand yet.
+Also in [this](https://www.youtube.com/watch?v=U9H7TmRt64A&list=PLRwVmtr-pp05PQDzfuOOo-eRskwHsONY0&index=4) video, Steve Halladay mentions that the base address 0x2000000 has something to do with the processor mode which I do not fully understand yet.
 
 As the UARTs are I/0 peripherals, the UART PIN Addresses are somewhere above the 0x20000000 address. The 0x20000000 is called the PERIPHERAL_BASE in the following.
 

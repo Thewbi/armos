@@ -1,5 +1,11 @@
 # printf
 
+## Links
+
+https://wiki.osdev.org/Raspberry_Pi_Bare_Bones
+
+## UART (Universal Asynchronous Receiver Transmitter)
+
 The goal of this section is to send character output over UART so that the OS can print onto the console.
 
 A hello world output should be printed.
@@ -41,8 +47,16 @@ THIS WORKS:
 aarch64-linux-gnu-objcopy -O binary kernel8.elf kernel8.img
 
 qemu-system-arm -m 256 -M raspi2 -serial stdio -kernel myos.elf
+
 THIS WORKS:
 /tmp/qemu/aarch64-softmmu/qemu-system-aarch64 -nographic -M raspi3 -kernel kernel8.img
+
+apt-get remove qemu-system
+apt-get autoremove qemu-system
+apt-get autoremove --purge qemu-system
+apt-get install qemu-system
+
+qemu-system-arm -kernel kernel.img -cpu arm1176 -m 256 -M versatilepb -nographic
 
 /home/download/gcc-arm-none-eabi-9-2020-q2-update/bin
 
@@ -90,59 +104,3 @@ ERROR:
 The following packages have unmet dependencies:
 libc6:arm64 : Depends: libgcc-s1:arm64 but it is not going to be installed
 E: Unable to correct problems, you have held broken packages.
-
-== Compile gcc-arm-none-eabi ==
-
-curl https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-src.tar.bz2 --output gcc-arm-none-eabi-src.tar.bz2
-
-curl https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-src.tar.bz2?revision=e2232c7c-4893-46b6-b791-356bdc29fd7f&la=en&hash=8E864863FA6E16582633DEABE590A7C010C8F750 --output gcc-arm-none-eabi-src.tar.bz2
-
-wget https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-src.tar.bz2?revision=e2232c7c-4893-46b6-b791-356bdc29fd7f&la=en&hash=8E864863FA6E16582633DEABE590A7C010C8F750
-
-md5sum gcc-arm-none-eabi-src.tar.bz2
-
-rm gcc-arm-none-eabi-src.tar.bz2
-
-mv 'gcc-arm-none-eabi-9-2020-q2-update-src.tar.bz2?revision=e2232c7c-4893-46b6-b791-356bdc29fd7f' gcc-arm-none-eabi-9-2020-q2-update-src.tar.bz2
-
-md5sum gcc-arm-none-eabi-9-2020-q2-update-src.tar.bz2
-
-```
-tar -xvjf gcc-arm-none-eabi-9-2020-q2-update-src.tar.bz2
-```
-
-cd gcc-arm-none-eabi-9-2020-q2-update
-
-```
-apt-get update
-
-apt-get install build-essential autoconf autogen bison dejagnu flex flip gawk git gperf gzip nsis openssh-client p7zip-full perl python-dev libisl-dev scons tcl texinfo tofrodos wget zip texlive texlive-extra-utils libncurses5-dev
-```
-
-Compiling:
-
-```
-$ ./install-sources.sh --skip_steps=mingw32
-$ ./build-prerequisites.sh --skip_steps=mingw32
-$ ./build-toolchain.sh --skip_steps=mingw32
-```
-
-When the build does finish, you should find a directory called install-native/ in the same directory that you ran the build scripts in. That folder will contain the finished toolchain which we will install in the next step.
-
-Step 3: Install the Toolchain
-It looks like the toolchain’s build contains four directories: bin/, lib/, share/, and arm-none-eabi/.
-
-Just copy everything into the /usr directory:
-
-```
-$ cp -R install-native/* /usr/
-$ ldconfig
-```
-
-Test the installation
-
-```
-$ which arm-none-eabi-gcc
-$ arm-none-eabi-gcc -v
-$ arm-none-eabi-gcc -print-search-dirs
-```

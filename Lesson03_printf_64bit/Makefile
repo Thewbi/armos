@@ -37,11 +37,17 @@ start.o: start.S
 
 kernel8.img: start.o $(OBJS)
 	aarch64-linux-gnu-ld -nostdlib -nostartfiles start.o $(OBJS) -T link.ld -o kernel8.elf
+	#aarch64-linux-gnu-ld -nostdlib -nostartfiles start.o $(OBJS) -T link.ld -o kernel.elf
 	aarch64-linux-gnu-objcopy -O binary kernel8.elf kernel8.img
+	#aarch64-linux-gnu-objcopy -O binary kernel.elf kernel.img
 
 clean:
-	rm kernel8.elf kernel8.img *.o >/dev/null 2>/dev/null || true
+	rm kernel.elf kernel.img kernel8.elf kernel8.img *.o >/dev/null 2>/dev/null || true
 
 run:
+	# QEmu options: https://wiki.gentoo.org/wiki/QEMU/Options
 	#/tmp/qemu/aarch64-softmmu/qemu-system-aarch64 -nographic -M raspi3 -kernel kernel8.img -d in_asm
-	/tmp/qemu/aarch64-softmmu/qemu-system-aarch64 -nographic -M raspi3 -kernel kernel8.img
+	#/tmp/qemu/aarch64-softmmu/qemu-system-aarch64 -nographic -m 1024 -M raspi3 -kernel kernel8.img
+	/tmp/qemu/aarch64-softmmu/qemu-system-aarch64 -display none -serial stdio -m 1024 -M raspi3 -kernel kernel8.img
+    # for Raspberry Pi 1
+	#qemu-system-arm -kernel kernel8.img -cpu arm1176 -m 256 -M versatilepb -nographic
