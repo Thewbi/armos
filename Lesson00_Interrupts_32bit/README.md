@@ -30,7 +30,7 @@ That means each of the possible interrupts that can occur will make the CPU jump
 
 When a interrupt occurs, the CPU jumps to the respective Interrupt Table Entry. There it finds a four byte jump instruction. The target address to jump to is defined by the OS developer and the OS developer will put the address of the custom interrupt handler here. This causes the CPU to perform a second jump from the interrupt table into the interrupt handler. From the interrupt handler it finally jumps back to the initial task.
 
-## Interrupt Vector Table Structure
+## Interrupt Table Structure
 
 https://www.valvers.com/open-software/raspberry-pi/bare-metal-programming-in-c-part-4/
 https://github.com/dwelch67/raspberrypi/tree/master/blinker07
@@ -69,7 +69,7 @@ The table [1] "Table B1-3 The vector tables" defines the Vector Table Entries an
 | 0x00000018  | IRQ interrupt         |
 | 0x0000001C  | FIQ interrupt         |
 
-In order to set the interrupt vector table up at the memory location 0x00000000, a common strategy mentioned in several pages on the internet (dwelch67 and www.valvers.com) is to first create a vector interrupt table at the beginning of the kernel.img which is then laded to 0x8000 because this is where the kernel is put by the GPU of the Raspberry Pi. In a second step that table is then copied to 0x0000 by using ldmia stmia instructions. In order for the interrupt vector table to be relocatable from 0x8000 to 0x0000 it has to be programmed using relative addresses instead of absolute addresses otherwise even after copying it, it would still contain references to the 0x8000 adresses.
+In order to set the interrupt vector table up at the memory location 0x00000000, a common strategy mentioned in several pages on the internet (dwelch67 and www.valvers.com) is to first create a vector interrupt table at the beginning of the kernel.img which is then loaded to 0x8000 because this is where the kernel is put by the GPU of the Raspberry Pi. In a second step that table is then copied to 0x0000 by using ldmia stmia instructions. In order for the interrupt vector table to be relocatable from 0x8000 to 0x0000 it has to be programmed using relative addresses instead of absolute addresses otherwise even after copying it, it would still contain references to the 0x8000 adresses.
 
 The documents describe this approach:
 

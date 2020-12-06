@@ -41,7 +41,6 @@ enum
     // The MMIO area base address
     //MMIO_BASE = 0x3F000000,
     MMIO_BASE = 0x20000000,
-    //0x101f1000
 
     // the GPIO registers base address.
     GPIO_BASE = MMIO_BASE + 0x200000,
@@ -195,22 +194,22 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags)
 
     uart_init();
 
-    uart_putc('H');
-    uart_putc('a');
-    uart_putc('l');
-    uart_putc('l');
-    uart_putc('o');
+    // uart_putc('H');
+    // uart_putc('a');
+    // uart_putc('l');
+    // uart_putc('l');
+    // uart_putc('o');
 
     //while (1) {
         //uart_puts("Garbage!\r\n");
     //}
 
     while (1) {
-        //uart_putc(uart_getc());
+        uart_putc(uart_getc());
 
-        uart_getc();
-        uart_putc('A');
+        // uart_getc();
+        // uart_putc('A');
 
-        uart_putc('\n');
+        // uart_putc('\n');
     }
 }

@@ -113,30 +113,22 @@ loop:
 /* ... */
 /* o = 0x6F */
 
+/*
 mov r2, #0x48
 bl writeCharacter
-
 mov r2, #0x61
 bl writeCharacter
-
-/* output l */
 mov r2, #0x6C
 bl writeCharacter
-
-/* output l */
 mov r2, #0x6C
 bl writeCharacter
-
-/* output o */
 mov r2, #0x6F
 bl writeCharacter
+ */
 
-/* output space
-mov r2, #0x20
-bl writeCharacter*/
+bl readCharacter
+bl writeCharacter
 
-/* wait */
-bl delay
 /* wait
 bl delay*/
 
@@ -154,7 +146,19 @@ mov r15, r14 /* return to caller. r15 is the programm counter. r14 is the link r
 writeCharacter:
 ldr r3, [r1, #0x18]
 and r3, r3, #0x20
-cmp r3, #0
+cmp r3, #0x00
 bne writeCharacter
-str r2, [r1, #0x0000] /*str r2, [r1, #0x0000] actually writes a character to the UART */
+str r2, [r1, #0x0000] /*str r2, [r1, #0x0000] actually writes the character in r2 to the UART */
+mov r15, r14 /* return to caller. r15 is the programm counter. r14 is the link register */
+
+/* Steve Halladay - https://www.youtube.com/watch?v=x3lzMfdlh2o&list=PLRwVmtr-pp05PQDzfuOOo-eRskwHsONY0&index=11 */
+readCharacter:
+/* wait for the UART to receive a character */
+ldr r7, [r1, #0x18]
+and r7, r7, #0x0010
+cmp r7, #0x00
+bne readCharacter
+/* get the character from the UART and store it into r2 */
+ldr r2, [r1, #0x00]
+and r2, r2, #0x00FF /* Cut of leading byte because only the lower byte contains data */
 mov r15, r14 /* return to caller. r15 is the programm counter. r14 is the link register */

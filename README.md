@@ -15,10 +15,13 @@ Raspbian OS Programming with the Raspberry Pi
 - https://jsandler18.github.io/
 - https://github.com/bztsrc/raspi3-tutorial
 - https://github.com/s-matyukevich/raspberry-pi-os
+- https://ultibo.org/
+- https://github.com/ultibohub/
 - https://leiradel.github.io/2019/01/28/Bss-and-Peripheral-Base.html
 - https://leiradel.github.io/2019/02/10/The-Mini-UART.html
 - https://azeria-labs.com/memory-instructions-load-and-store-part-4/
 - https://www.lowlevel.eu/wiki/ARM-OS-Dev_f%C3%BCr_Einsteiger
+- http://bob.cs.sonoma.edu/IntroCompOrg-RPi/sec-inters.html
 
 ARM Documentation
 
