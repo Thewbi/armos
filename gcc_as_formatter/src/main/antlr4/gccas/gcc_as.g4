@@ -3,10 +3,11 @@ grammar gcc_as;
 program:
 	(
 	newline
+	| line
 	| line WS* newline
 	| line WS* comment
 	| comment
-	| multiline_comment WS*)+
+	| multilineComment WS*)+
 	EOF
 	;
 
@@ -24,7 +25,7 @@ comment:
 	(WS)* ('@' | ';' | '/''/') ~( '\n' )*
   	;
   	
-multiline_comment:
+multilineComment:
     (WS)* '/*' .*? '*/'
     ;
 
@@ -32,47 +33,46 @@ expr:
     expr WS* ('<''<' | '|' | '=''=') WS* expr
 	| expr WS* ('*'|'/') WS* expr
     | expr WS* ('+'|'-') WS* expr
-    | '#'? numeric_literal
-    | Identifier
+    | '#'? numericLiteral
+    | IDENTIFIER
     | '#'? '(' WS* expr WS* ')'
     ;
     
 label:
-//	'.'? Identifier WS* ':' WS* (directive)?
-    '.'? Identifier WS* ':'
+    '.'? IDENTIFIER WS* ':'
 	;
 	
 instruction:
-	(WS)* Identifier (WS* param_list)?
+	(WS)* IDENTIFIER (WS* paramList)?
 	;
 	
 preprocessor:
-	'#' Identifier (WS* param_list)?
+	'#' IDENTIFIER (WS* paramList)?
 	;
     
 directive:
-	(WS)* '.' (INT)? Identifier (WS+ param_list)?
+	(WS)* '.' (INT)? IDENTIFIER (WS+ paramList)?
 	;
 	
-param_list:
-	param (','? WS* param)*
+paramList:
+	param (WS* ','? WS* param)*
 	;
 	
 param:
-    '[' WS* param_list WS* ']'
-    |'{' WS* param_list WS* '}'
+    '[' WS* paramList WS* ']'
+    |'{' WS* paramList WS* '}'
 	| expr
-    | Identifier '!'?
-    | '.' WS* ('-')? Identifier
-    | '#' WS* ('-')? Identifier
-    | '%' WS* ('-')? Identifier
-    | '=' WS* ('-')? Identifier
-    | '=''#' WS* ('-')? Identifier
-    | ('-')? numeric_literal
-    | '#' WS* ('-')? numeric_literal
-    | '=' WS* ('-')? numeric_literal
-    | '=''#' WS* ('-')? numeric_literal
-    | ('-')? StringLiteral
+    | IDENTIFIER '!'?
+    | '.' WS* ('-')? IDENTIFIER
+    | '#' WS* ('-')? IDENTIFIER
+    | '%' WS* ('-')? IDENTIFIER
+    | '=' WS* ('-')? IDENTIFIER
+    | '=''#' WS* ('-')? IDENTIFIER
+    | ('-')? numericLiteral
+    | '#' WS* ('-')? numericLiteral
+    | '=' WS* ('-')? numericLiteral
+    | '=''#' WS* ('-')? numericLiteral
+    | ('-')? STRING_LITERAL
     ;
     
 newline: 
@@ -80,7 +80,7 @@ newline:
 	| ( '\n' ) 
 	;
 	
-numeric_literal:
+numericLiteral:
 	INT
 	| HEX
 	;
@@ -141,19 +141,19 @@ LESS_THAN:
 	'<'
 	;
 	
-Identifier:
-	(Letter | '_' ) (Letter | '_' | DIGIT)*
+IDENTIFIER:
+	(LETTER | '_' ) (LETTER | '_' | DIGIT)*
 	;
 	
-Letter: 
+LETTER: 
 	[a-zA-Z]
     ;
     
-StringLiteral
-  	: UnterminatedStringLiteral '"'
+STRING_LITERAL
+  	: UNTERMINATED_STRING_LITERAL '"'
   	;
 
-UnterminatedStringLiteral
+UNTERMINATED_STRING_LITERAL
   	: '"' (~["\\\r\n] | '\\' (. | EOF))*
   	;
   	

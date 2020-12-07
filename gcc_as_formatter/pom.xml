@@ -11,6 +11,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>12</maven.compiler.source>
 		<maven.compiler.target>12</maven.compiler.target>
+		<antlr.runtime.version>4.8</antlr.runtime.version>
+		<!-- Version 4.9 seems to not work on windows! <antlr.runtime.version>4.9</antlr.runtime.version> -->
+		<commons-lang3-version>3.11</commons-lang3-version>
 	</properties>
 
 	<build>
@@ -20,7 +23,7 @@
 			<plugin>
 				<groupId>org.antlr</groupId>
 				<artifactId>antlr4-maven-plugin</artifactId>
-				<version>4.9</version>
+				<version>${antlr.runtime.version}</version>
 				<executions>
 					<execution>
 						<id>antlr</id>
@@ -41,8 +44,23 @@
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr4-runtime</artifactId>
-			<version>4.9</version>
+			<version>${antlr.runtime.version}</version>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3-version}</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.4</version>
+		</dependency>
+
 
 	</dependencies>
 

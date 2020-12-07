@@ -9,15 +9,15 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import asm.gccas.OutputListener;
+import asm.gccas.TreeListener;
 import gccas.gcc_asLexer;
 import gccas.gcc_asParser;
 
 public class Main {
 
-	public static void main(final String[] args) throws FileNotFoundException {
+    public static void main(final String[] args) throws FileNotFoundException {
 
-		// @formatter:off
+        // @formatter:off
 
 		//String content = "// this is a comment";
 		//String content = "; this is a comment";
@@ -66,24 +66,28 @@ public class Main {
 
 		// @formatter:on
 
-		final String content = new Scanner(new File("src/test/resources/SmartStart32.S")).useDelimiter("\\Z").next();
-//		final String content = new Scanner(new File("src/test/resources/test1.S")).useDelimiter("\\Z").next();
+//		final String content = new Scanner(new File("src/test/resources/SmartStart32.S")).useDelimiter("\\Z").next();
+//        final String content = new Scanner(new File("src/test/resources/test1.S")).useDelimiter("\\Z").next();
+        final String content = new Scanner(new File("src/test/resources/test2.S")).useDelimiter("\\Z").next();
 
-		final gcc_asLexer lexer = new gcc_asLexer(CharStreams.fromString(content));
+        final gcc_asLexer lexer = new gcc_asLexer(CharStreams.fromString(content));
 
-		final CommonTokenStream tokens = new CommonTokenStream(lexer);
-		final gcc_asParser parser = new gcc_asParser(tokens);
-		final ParseTree tree = parser.program();
+        final CommonTokenStream tokens = new CommonTokenStream(lexer);
+        final gcc_asParser parser = new gcc_asParser(tokens);
+        final ParseTree tree = parser.program();
 
-		final ParseTreeWalker walker = new ParseTreeWalker();
-		final OutputListener listener = new OutputListener();
+//        final OutputListener listener = new OutputListener();
+        final TreeListener listener = new TreeListener();
 
-		walker.walk(listener, tree);
+        final ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(listener, tree);
+
+        // listener.dump();
 
 //		assertThat(listener.getErrors().size(), is(1));
 //		assertThat(listener.getErrors().get(0),
 //		  is("Method DoSomething is uppercased!"));
 
-	}
+    }
 
 }
