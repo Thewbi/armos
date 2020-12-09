@@ -11,7 +11,7 @@ https://s-matyukevich.github.io/raspberry-pi-os/docs/lesson03/rpi-os.html
 
 ## Introduction
 
-Interrupt is a term used in x86 systems and a lot of low-level systems. ARM decided to refer to Interrupts by the term exception. Exceptions is a bit of a confusing term because exceptions are a concept in high-level programming language and hence confuses software developers a bit. Do not get confused! Now you know that ARM Exceptions are the same as Interrupts.
+Interrupt is a term used in x86 systems and a lot of low-level systems. ARM decided to refer to Interrupts by the term exception. Exceptions is a bit of a confusing term because exceptions are a concept in high-level programming language and hence confuses high-level software developers a bit. Do not get confused! Now you know that an ARM exception is the same thing as an interrupt.
 
 See https://www.youtube.com/playlist?list=PLRwVmtr-pp05PQDzfuOOo-eRskwHsONY0
 
@@ -29,6 +29,26 @@ The different interrupts are identified by a memory address that is put into the
 That means each of the possible interrupts that can occur will make the CPU jump to a specific memory address (the respective Interrupt Table Entry) and the CPU will just execute the code that it finds there.
 
 When a interrupt occurs, the CPU jumps to the respective Interrupt Table Entry. There it finds a four byte jump instruction. The target address to jump to is defined by the OS developer and the OS developer will put the address of the custom interrupt handler here. This causes the CPU to perform a second jump from the interrupt table into the interrupt handler. From the interrupt handler it finally jumps back to the initial task.
+
+## Processor Modes
+
+Processor modes are important in the context of interrupts, because when an interrupt occurs, the interrupt changes the processor mode.
+
+Other than interrupts the processor can also be changed using assembly instructions except when in user mode. The user mode is not a priviledged mode and is not allowed to change the processor mode.
+
+When the processor initially starts, it is in the supervisor mode / privileged mode. For normal applications, the processor can be put into user mode. When in user mode, the processor mode cannot be changed by software but only by interrupts.
+
+Next to user and supervisor mode, there is also a system mode. ??? What is system mode used for ???.
+
+For exceptions / interrupts there are the modes abort, undefined, interrupt and fast interrupt.
+
+## Stack Register
+
+The register r13 aka. sp, the stack pointer contains the memory address where the assembly instructions that work on the stack load and store data.
+
+The r13 register is a banked register meaning that there is an individual r13 register in each processor mode. Individual register means that there are several physical r13 registers in the ARM CPU, one for each processor mode. They can in theory all point to the same stack address but the examples for ARM interrupts all create one seperate stack per processor mode.
+
+When the processor mode is changed either in software or by the interrupt controller, the banked r13 registers are exchanged automatically without and user intervention. That means the stacks change automatically.
 
 ## Interrupt Table Structure
 

@@ -17,9 +17,11 @@ There is an individual document describing the UART (ARM PrimeCell UART (PL011) 
 
 ## Introduction to UART
 
-UART means Universal Asynchronous Receiver/Transmitter. The UART hardware is exposed by 3.3 Volt pins on the raspberry pi. The same pins are used throughout all revisions of the Raspberry Pi. You have to make sure that you do not damage your raspberry pi by using the wrong voltage. USB outputs 5V. When you want to connect your raspberry pi's UART to your compute make sure to use a USB to TTL adapter that performs voltage level shifting from 5V to 3.3V.
+UART means Universal Asynchronous Receiver/Transmitter. It is often used in embedded systems that do not have a VGA, HDMI, Display Port or any other usable graphical connector. UART can be used to exchange bytes of data. When transmitting ASCII characters, terminal emulators such as Putty, screen, CoolTerm or MobaXTerm can be used to send commands and receive output from a embedded device.
 
-Also the TX (transmit) pin on one end of the connection has to be connected to the RX (receive) pin on the other end of the connection. Make sure to connect RX to TX and TX to RX. Then also connect the two grounds. Some USB to TTL converters contain a 3.3V and a 5V pin. In theory you could connect the 5V pin from the USB to a pin on the Raspberry Pi that can take 5V to power the system. If you power your raspberry pi using a dedicated power supply, do not power the raspberry pi over the USB to Serial adapter at the same time. Only use a single power source. The serial UART connection works with RX, TX and ground connected. You do not net voltage connection for the UART serial connection.
+On the Rapsberry PI the UART hardware is exposed via 3.3 Volt pins. The same pins are used throughout all revisions of the Raspberry Pi. You have to make sure that you do not damage your raspberry pi by using the wrong voltage. USB outputs 5V. When you want to connect your raspberry pi's UART to your compute make sure to use a USB to TTL adapter that performs voltage level shifting from 5V to 3.3V such as [this ones](https://www.amazon.de/AZDelivery-CP2102-Konverter-HW-598-Arduino/dp/B07N2YLH26/ref=sr_1_12_sspa?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3PJMDM6C9L673&dchild=1&keywords=usb+ttl+adapter+3.3v&qid=1607361578&sprefix=USB+ttl+%2Caps%2C165&sr=8-12-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUEyTTNZOUk5S0lINDdRJmVuY3J5cHRlZElkPUEwOTQ1NDYwM09QTlpDQU42MVlLWSZlbmNyeXB0ZWRBZElkPUEwMjk2OTgzM0RLM0FUWThRTEFOMCZ3aWRnZXROYW1lPXNwX210ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=).
+
+Also the TX (transmit) pin on one end of the connection has to be connected to the RX (receive) pin on the other end of the connection (They are flipped around so TX is connected to RX for both directions!). Make sure to connect RX to TX and TX to RX. Then also connect the two grounds. Some USB to TTL converters contain a 3.3V and a 5V pin. In theory you could connect the 5V pin from the USB to a pin on the Raspberry Pi that can take 5V to power the system. If you power your raspberry pi using a dedicated power supply, do not power the raspberry pi over the USB to Serial adapter at the same time. Only use a single power source. The serial UART connection works with RX, TX and ground connected. You do not net voltage connection for the UART serial connection.
 
 The pins will output serial data. You can plug in a serial to USB adapter or adapter cable and connect it to your PC. Or you can connect RS232 or RS485 adapters to transfer the serial data over cables of larger length.
 
@@ -152,8 +154,7 @@ enum
     GPPUDCLK0 = (GPIO_BASE + 0x98),
 
     // The base address for UART.
-    // for raspi2 & 3, 0x20201000 for raspi1
-    UART0_BASE = 0x3F201000,
+    UART0_BASE = GPIO_BASE + 0x1000,
 
     UART0_DR     = (UART0_BASE + 0x00),
     UART0_RSRECR = (UART0_BASE + 0x04),
@@ -240,7 +241,12 @@ The steps required to get anything out of the UART hardware are:
 
 - disable UART0 so it can be configured
 - Set up the GPIO pins because the pins are use to connect the UART0 hardware over the GPIO pins to the terminal software via a cable.
+- disable all interrupts
+- set the UART baudrate
+- mask the interrupts and turn the interrupts back on
 - enable UART0 again
+
+main.S contains an assembler application that goes through all those steps outlined above. It is taken from Steve Hallady's series on [Youtube](https://www.youtube.com/playlist?list=PLRwVmtr-pp05PQDzfuOOo-eRskwHsONY0).
 
 ## Testing with QEmu
 

@@ -7,27 +7,6 @@ https://wunkolo.github.io/OakSim/
 Beware: OakSim represents register values in hexadecimal notation but it does not prefix 0x to the numbers
 but displays them like integer numbers. So if a register contains the number 10, you know that it in decimal notation contains the value 16.
 
-# Registers
-
-|Suffix|Meaning|
-|---|---|
-|R1||
-|R2||
-|R3||
-|R4||
-|R5||
-|R6||
-|R7||
-|R8||
-|R9||
-|R10||
-|R11||
-|R12||
-|R13|SP StackPointer|
-|R14|LR LinkRegister|
-|R15|PC ProgramCounter|
-|R16|CPSR StatusRegister|
-
 # {S}
 
 If a command's syntax supports a {S} modifier, the character 'S' can be added to the command.
@@ -45,6 +24,7 @@ Aren't the condition flags in the CPSR always updated?????
 I do not understand!!!?!?!!
 
 # Condition Code Suffixes {cond}
+
 https://www.keil.com/support/man/docs/armasm/armasm_dom1361289860997.htm
 
 If a command's syntax supports a {cond} suffix, a condition code suffix can be added to the command.
@@ -53,27 +33,28 @@ e.g. MUL{S}{cond} {Rd}, Rn, Rm
 
 The list of available condition code suffixes {cond} are:
 
-|Suffix|Meaning|
-|---|---|
-|EQ|Equal|
-|NE|Not equal|
-|CS|Carry set (identical to HS)|
-|HS|Unsigned higher or same (identical to CS)|
-|CC|Carry clear (identical to LO)|
-|LO|Unsigned lower (identical to CC)|
-|MI|Minus or negative result|
-|PL|Positive or zero result|
-|VS|Overflow|
-|VC|No overflow|
-|HI|Unsigned higher|
-|LS|Unsigned lower or same|
-|GE|Signed greater than or equal|
-|LT|Signed less than|
-|GT|Signed greater than|
-|LE|Signed less than or equal|
-|AL|Always (this is the default)|
+| Suffix | Meaning                                   |
+| ------ | ----------------------------------------- |
+| EQ     | Equal                                     |
+| NE     | Not equal                                 |
+| CS     | Carry set (identical to HS)               |
+| HS     | Unsigned higher or same (identical to CS) |
+| CC     | Carry clear (identical to LO)             |
+| LO     | Unsigned lower (identical to CC)          |
+| MI     | Minus or negative result                  |
+| PL     | Positive or zero result                   |
+| VS     | Overflow                                  |
+| VC     | No overflow                               |
+| HI     | Unsigned higher                           |
+| LS     | Unsigned lower or same                    |
+| GE     | Signed greater than or equal              |
+| LT     | Signed less than                          |
+| GT     | Signed greater than                       |
+| LE     | Signed less than or equal                 |
+| AL     | Always (this is the default)              |
 
 # mov
+
 https://www.keil.com/support/man/docs/armasm/armasm_dom1361289878994.htm
 
 mov - Move
@@ -105,6 +86,7 @@ ldr - Load Register
 ## Syntax
 
 Immediate offset
+
 ```
 LDR{type}{cond} Rt, [Rn {, #offset}] ; immediate offset
 LDR{type}{cond} Rt, [Rn, #offset]! ; pre-indexed
@@ -115,12 +97,14 @@ LDRD{cond} Rt, Rt2, [Rn], #offset ; post-indexed, doubleword
 ```
 
 PC relative
+
 ```
 LDR{type}{cond}{.W} Rt, label
 LDRD{cond} Rt, Rt2, label ; Doubleword
 ```
 
 Register offset
+
 ```
 LDR{type}{cond} Rt, [Rn, ±Rm {, shift}] ; register offset
 LDR{type}{cond} Rt, [Rn, ±Rm {, shift}]! ; pre-indexed ; ARM only
@@ -131,18 +115,21 @@ LDRD{cond} Rt, Rt2, [Rn], ±Rm ; post-indexed, doubleword ; ARM only
 ```
 
 Register relative
+
 ```
 LDR{type}{cond}{.W} Rt, label
 LDRD{cond} Rt, Rt2, label ; Doubleword
 ```
 
 Pseudo instruction
+
 ```
 LDR{cond}{.W} Rt, =expr
 LDR{cond}{.W} Rt, =label_expr
 ```
 
 LDR unprivileged
+
 ```
 LDR{type}T{cond} Rt, [Rn {, #offset}] ; immediate offset (32-bit Thumb encoding only)
 LDR{type}T{cond} Rt, [Rn] {, #offset} ; post-indexed (ARM only)
@@ -165,8 +152,22 @@ ldr pc, _reset_h
 ```
 
 # mul
+
 https://www.keil.com/support/man/docs/armasm/armasm_dom1361289882394.htm
 
 mul - Multiply
 
+# bl
 
+https://www.keil.com/support/man/docs/armasm/armasm_dom1361289865686.htm
+
+branch with link
+
+Do not confuse with bal. bal is a variantion of the branch (b) instruction and means branch always.
+bal has nothing to do with branch with link (bl)
+
+# b
+
+https://www.keil.com/support/man/docs/armasm/armasm_dom1361289863797.htm
+
+branch
