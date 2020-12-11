@@ -29,7 +29,7 @@ function compile {
 }
 
 case "$1" in
-    -c | --clean)
+    -c | --clean | --clear)
         delete
     ;;
 

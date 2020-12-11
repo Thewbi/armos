@@ -22,8 +22,10 @@ Raspbian OS Programming with the Raspberry Pi
 - https://azeria-labs.com/memory-instructions-load-and-store-part-4/
 - https://www.lowlevel.eu/wiki/ARM-OS-Dev_f%C3%BCr_Einsteiger
 - http://bob.cs.sonoma.edu/IntroCompOrg-RPi/sec-inters.html
+- https://www.pieter-jan.com/node/15
+- https://learn.sparkfun.com/tutorials/raspberry-gpio/all
 
-ARM Documentation
+## ARM Documentation
 
 Some general tips for the ARM website. When visiting a link to a document on the ARM website such as the ARMv5 reference manual for example, the page that loads in many cases does not directly contain the document in HTML form! It oftentimes does not even contain a link to download the PDF version! Instead you have to understand the web design of the ARM website. The ARM website contains a bar with more or less randomly selected actions such as switching between the light and dark theme. One of those options is a "Download" option. This is where you actually get access to the PDF version of the document you were looking for.
 

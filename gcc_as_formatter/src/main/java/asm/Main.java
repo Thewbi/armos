@@ -15,9 +15,9 @@ import gccas.gcc_asParser;
 
 public class Main {
 
-    public static void main(final String[] args) throws FileNotFoundException {
+	public static void main(final String[] args) throws FileNotFoundException {
 
-        // @formatter:off
+		// @formatter:off
 
 		//String content = "// this is a comment";
 		//String content = "; this is a comment";
@@ -68,26 +68,34 @@ public class Main {
 
 //		final String content = new Scanner(new File("src/test/resources/SmartStart32.S")).useDelimiter("\\Z").next();
 //        final String content = new Scanner(new File("src/test/resources/test1.S")).useDelimiter("\\Z").next();
-        final String content = new Scanner(new File("src/test/resources/test2.S")).useDelimiter("\\Z").next();
+		// final String content = new Scanner(new
+		// File("src/test/resources/test2.S")).useDelimiter("\\Z").next();
+		final String content = new Scanner(new File("src/test/resources/test3.S")).useDelimiter("\\Z").next();
 
-        final gcc_asLexer lexer = new gcc_asLexer(CharStreams.fromString(content));
+		final gcc_asLexer lexer = new gcc_asLexer(CharStreams.fromString(content));
 
-        final CommonTokenStream tokens = new CommonTokenStream(lexer);
-        final gcc_asParser parser = new gcc_asParser(tokens);
-        final ParseTree tree = parser.program();
+		final CommonTokenStream tokens = new CommonTokenStream(lexer);
+		final gcc_asParser parser = new gcc_asParser(tokens);
+		final ParseTree tree = parser.program();
 
 //        final OutputListener listener = new OutputListener();
-        final TreeListener listener = new TreeListener();
+		final TreeListener listener = new TreeListener();
 
-        final ParseTreeWalker walker = new ParseTreeWalker();
-        walker.walk(listener, tree);
+		final ParseTreeWalker walker = new ParseTreeWalker();
+		walker.walk(listener, tree);
 
-        // listener.dump();
+		// TODO
+		// Call the method that creates an Object that describes a debuggable step for a
+		// simulator
+
+		listener.createStep();
+
+		// listener.dump();
 
 //		assertThat(listener.getErrors().size(), is(1));
 //		assertThat(listener.getErrors().get(0),
 //		  is("Method DoSomething is uppercased!"));
 
-    }
+	}
 
 }

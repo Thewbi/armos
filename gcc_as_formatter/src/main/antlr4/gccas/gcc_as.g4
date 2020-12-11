@@ -2,22 +2,26 @@ grammar gcc_as;
 
 program:
 	(
-	newline
-	| line
-	| line WS* newline
-	| line WS* comment
-	| comment
-	| multilineComment WS*)+
+        label? line 
+	)+
 	EOF
 	;
 
 line:
 	(
-	preprocessor
-	| directive
-	| instruction 
-	| label
-	| label WS* (directive)?
+    	preprocessor
+    	| directive
+    	| instruction 
+    	
+	)?
+	(
+        WS* multilineComment
+    )?
+	(
+	    WS* comment
+    )?
+	(
+	    WS* newline
 	)
 	;
 	
@@ -77,7 +81,8 @@ param:
     
 newline: 
 	( '\r' '\n' )
-	| ( '\n' ) 
+	| ( '\n' )
+	| ( '\r' )
 	;
 	
 numericLiteral:

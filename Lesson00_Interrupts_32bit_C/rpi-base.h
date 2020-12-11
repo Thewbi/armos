@@ -30,9 +30,9 @@
 /* System Frequencies From:
    https://www.raspberrypi.org/documentation/configuration/config-txt/overclocking.md */
 //#if defined( RPI0 ) || defined( RPI3 )
-#define SYSFREQ 400000000UL
+//#define SYSFREQ 400000000UL
 //#elif defined( RPI1 ) || defined ( RPI2 )
-//#define SYSFREQ 250000000UL
+#define SYSFREQ (250000000UL)
 //#elif defined( RPI4 )
 //#define SYSFREQ 500000000UL
 //#else
@@ -45,5 +45,7 @@ typedef volatile uint32_t rpi_reg_wo_t;
 
 typedef volatile uint64_t rpi_wreg_rw_t;
 typedef volatile const uint64_t rpi_wreg_ro_t;
+
+extern void writeCharacter(char a, char b, char c);
 
 #endif

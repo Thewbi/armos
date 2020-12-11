@@ -1,64 +1,69 @@
-.section .init
+.section ".text.startup"
+
 .globl _start
 _start:
 
-/* ldr reg,=val puts the number val into the register named reg. */
-/* mov reg,#val puts the number val into the register named reg. */
-/* str reg,[dest,#val] stores the number in reg at the address given by dest + val. */
-/* mrs r0, cpsr copies the status register CPSR into a general purpose register */
-/* msr cpsr, r0 copies the value in a general purpose register into the status register CPSR */
+    /* set the stack pointer */
+    ldr sp, =0x7000
 
-
+    /* init serial */
     bl initUart
 
+    /* set parameter 1, the value to compute the faculty for */
+    mov r0, #0x03
 
-loop:
+    bl faculty
 
-    /* A = 0x41 */
-    /* B = 0x42 */
-    /* C = 0x43 */
-    /* D = 0x44 */
-    /* E = 0x45 */
-    /* F = 0x46 */
-    /* G = 0x47 */
-    /* H = 0x48 */
+    /* r0 contains the result */
 
-    /* a = 0x61 */
-    /* b = 0x62 */
-    /* c = 0x63 */
-    /* ... */
-    /* l = 0x6C */
-    /* ... */
-    /* o = 0x6F */
+    /* Convert the integer in r0 to the ASCII code of the character representing that number by adding 0x30 */
+    add r0, r0, #0x30
 
-    /* output H */
+end_of_app:
+    /* output character stored in r2 */
+    mov r2, r0
+    bl writeCharacter
+
+    /* output H
     mov r2, #0x48
-    bl writeCharacter
-
-    /* output a */
-    mov r2, #0x61
-    bl writeCharacter
-
-    /* output l */
-    mov r2, #0x6C
-    bl writeCharacter
-
-    /* output l */
-    mov r2, #0x6C
-    bl writeCharacter
-
-    /* output o */
-    mov r2, #0x6F
-    bl writeCharacter
+    bl writeCharacter*/
 
     /* output space */
     mov r2, #0x20
     bl writeCharacter
 
-    /* wait */
     bl delay
 
-    bal loop
+    bal end_of_app
+
+
+
+
+faculty:
+
+    push {lr}
+
+    cmp r0, #0x00
+    bne continue_faculty
+    mov r0, #0x01
+    b return_faculty
+
+continue_faculty:
+    push {r0}
+    sub r0, r0, #0x01
+    bl faculty
+    mov r1, r0
+
+    pop {r0}
+
+    mul r0, r0, r1
+
+return_faculty:
+    pop {lr}
+    /* return to caller. r15 is the programm counter. r14 is the link register */
+    mov pc, lr
+
+
 
 
 /* Make the system wait */
@@ -74,19 +79,34 @@ wait:
 
 
 
+
 /* Check if another character can be written and if the fifo is empty, write the character */
+/* write value from r2 to the serial connection */
 writeCharacter:
+    /* r0 is GPIO base, 0x20200000 */
+    mov r0, #0x20000000
+    mov r1, #0x00200000
+    orr r0, r0, r1
+
+    /* r1 is UART base */
+    orr r1, r0, #0x1000
+
+    /* Check if another character can be written */
     ldr r3, [r1, #0x18]
     and r3, r3, #0x20
     cmp r3, #0
     bne writeCharacter
-    str r2, [r1, #0x0000] /*str r2, [r1, #0x0000] actually writes a character to the UART */
+
+    /* str r2, [r1, #0x0000] actually writes a character to the UART */
+    str r2, [r1, #0x0000]
 
     /* return to caller. r15 is the programm counter. r14 is the link register */
     mov pc, lr
 
 
 
+
+/* set up the hardware that can transfer data over a serial connection */
 initUart:
     /* r0 is GPIO base, 0x20200000 */
     mov r0, #0x20000000

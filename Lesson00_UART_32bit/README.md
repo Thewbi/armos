@@ -11,15 +11,31 @@
 
 ## Disclaimer
 
-Note that for the Raspberry 2, 3 and 4, the addresses are different than for the Rapsberry PI 1! This document only is valid for the Raspberry Pi 1! See https://wiki.osdev.org/Detecting_Raspberry_Pi_Board.
+Note that for the Raspberry 1, 2, 3 and 4, the memory-mapped input-output (MMIO) addresses to access the hardware differ! This document only is valid for the Raspberry Pi 1! See https://wiki.osdev.org/Detecting_Raspberry_Pi_Board. To adjust the code for the other raspberry pi models, set the correct base address accordingly. The addresses are described in many of the low-level and bare-metal programming tutorials:
+
+```
+    /// The MMIO area base address
+    switch (raspi) {
+
+         case 0:
+         case 1:  MMIO_BASE = 0x20000000; break; // for raspi 1, raspi zero etc.
+
+         case 2:
+         case 3:  MMIO_BASE = 0x3F000000; break; // for raspi 2 & 3
+
+         case 4:  MMIO_BASE = 0xFE000000; break; // for raspi 4
+
+         default: MMIO_BASE = 0x20000000; break; // for raspi 1, raspi zero etc.
+     }
+```
 
 There is an individual document describing the UART (ARM PrimeCell UART (PL011) Revision: r1p5 Technical Reference Manual)
 
 ## Introduction to UART
 
-UART means Universal Asynchronous Receiver/Transmitter. It is often used in embedded systems that do not have a VGA, HDMI, Display Port or any other usable graphical connector. UART can be used to exchange bytes of data. When transmitting ASCII characters, terminal emulators such as Putty, screen, CoolTerm or MobaXTerm can be used to send commands and receive output from a embedded device.
+UART means Universal Asynchronous Receiver/Transmitter. It is often used in embedded systems that do not have a VGA, HDMI, Display Port or any other usable graphical connector or during early phases of development, when there is no source code available to use the graphics hardware yet. UART can be used to exchange bytes of data. When transmitting ASCII characters, terminal emulators such as Putty, screen, CoolTerm or MobaXTerm can be used to send commands and receive output from a embedded device.
 
-On the Rapsberry PI the UART hardware is exposed via 3.3 Volt pins. The same pins are used throughout all revisions of the Raspberry Pi. You have to make sure that you do not damage your raspberry pi by using the wrong voltage. USB outputs 5V. When you want to connect your raspberry pi's UART to your compute make sure to use a USB to TTL adapter that performs voltage level shifting from 5V to 3.3V such as [this ones](https://www.amazon.de/AZDelivery-CP2102-Konverter-HW-598-Arduino/dp/B07N2YLH26/ref=sr_1_12_sspa?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3PJMDM6C9L673&dchild=1&keywords=usb+ttl+adapter+3.3v&qid=1607361578&sprefix=USB+ttl+%2Caps%2C165&sr=8-12-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUEyTTNZOUk5S0lINDdRJmVuY3J5cHRlZElkPUEwOTQ1NDYwM09QTlpDQU42MVlLWSZlbmNyeXB0ZWRBZElkPUEwMjk2OTgzM0RLM0FUWThRTEFOMCZ3aWRnZXROYW1lPXNwX210ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=).
+On the Rapsberry PI the UART hardware is exposed via 3.3 Volt pins. The same pins are used throughout all revisions of the Raspberry Pi. You have to make sure that you do not damage your raspberry pi by using the wrong voltage. USB outputs 5V. When you want to connect your raspberry pi's UART to your computer make sure to use a USB to TTL adapter that performs voltage level shifting from 5V to 3.3V such as [these ones](https://www.amazon.de/AZDelivery-CP2102-Konverter-HW-598-Arduino/dp/B07N2YLH26/ref=sr_1_12_sspa?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3PJMDM6C9L673&dchild=1&keywords=usb+ttl+adapter+3.3v&qid=1607361578&sprefix=USB+ttl+%2Caps%2C165&sr=8-12-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUEyTTNZOUk5S0lINDdRJmVuY3J5cHRlZElkPUEwOTQ1NDYwM09QTlpDQU42MVlLWSZlbmNyeXB0ZWRBZElkPUEwMjk2OTgzM0RLM0FUWThRTEFOMCZ3aWRnZXROYW1lPXNwX210ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=).
 
 Also the TX (transmit) pin on one end of the connection has to be connected to the RX (receive) pin on the other end of the connection (They are flipped around so TX is connected to RX for both directions!). Make sure to connect RX to TX and TX to RX. Then also connect the two grounds. Some USB to TTL converters contain a 3.3V and a 5V pin. In theory you could connect the 5V pin from the USB to a pin on the Raspberry Pi that can take 5V to power the system. If you power your raspberry pi using a dedicated power supply, do not power the raspberry pi over the USB to Serial adapter at the same time. Only use a single power source. The serial UART connection works with RX, TX and ground connected. You do not net voltage connection for the UART serial connection.
 
@@ -85,6 +101,8 @@ dtoverlay=pi3-disable-bt
 
 ...
 ```
+
+Beware that configuring the value core_freq=250 actually forces the hardware to use that frequency. That means even if the system detects that the chip runs hot, it will not throttle. To be on the safe side, put an active fan or a passive heatsink on your Pi.
 
 On MAC I use a application called CoolTerm as a serial monitor and a USB to TTL converter to establish the serial connection. The connection is established over the port called 'SLAB_USBtoUART'. The Baudrate is 115200 and 8N1 (= 8 data bits, No Parity, 1 Stop Bit). The code I use is the [osdev wiki's bare metal programming tutorial for the raspberry pi](https://wiki.osdev.org/Raspberry_Pi_Bare_Bones).
 

@@ -65,6 +65,9 @@ static rpi_irq_controller_t* RPI_GetIrqController( void )
     return rpiIRQController;
 }
 
+/*
+ * Uses the interrupt controller and enables the timer irq.
+ */
 void RPI_EnableARMTimerInterrupt(void)
 {
 #ifdef RPI4
