@@ -4,7 +4,9 @@ The Raspberry Pi contains a CPU and a GPU.
 
 There is a timer inside the CPU and inside the GPU.
 
-This document explains those timers.
+In the following, the timer inside the CPU is referred to as the ARM / CPU timer and the timer inside the GPU is referred to as the system timer.
+
+This document explains both of those timers.
 
 ## Links
 
@@ -45,7 +47,7 @@ APB Clock - ??? Is this maybe the same thing as the system clock? Or is it the A
 - https://mindplusplus.wordpress.com/2013/05/21/accessing-the-raspberry-pis-1mhz-timer/#note1
 - https://github.com/dwelch67/raspberrypi/tree/master/blinker07
 
-## CPU Timer
+## ARM / CPU Timer
 
 The CPU or ARM timer peripheral is documented in chapter 14 of the BCM2835-ARM-Peripherals document.
 
@@ -156,11 +158,11 @@ timer_clock = apb_clock / (pre_divider + 1)
 = 1984127 Hz
 ```
 
-If the value 1984127 = 0x1E467F is written into the value register, then the frequency of the system clock will count down to 0 and trigger the interrupt about every second.
+If the value 1984127 = 0x1E467F is written into the value register, then the configured frequency of the system clock will cause the ARM / CPU timer to count down to 0 and trigger the interrupt about every second.
 
 ### Using the ARM / CPU timer with interrupts
 
-To use that timer with interrupts (described [here](https://www.valvers.com/open-software/raspberry-pi/bare-metal-programming-in-c-part-4/))
+To use the ARM / CPU timer with interrupts (described [here](https://www.valvers.com/open-software/raspberry-pi/bare-metal-programming-in-c-part-4/))
 
 - Enable the ARM Timer Interrupt in the Interrupt Controller
 - Enable interrupts globally
