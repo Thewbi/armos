@@ -27,7 +27,7 @@ semi-automatic timer - See (see https://www.embedded.com/introduction-to-counter
 
 free-running counter - is described in chapter 14 of the Peripherals manual. It is a register that stores a value that is continuously incremented or decremented at a certain frequency (derived from the System Clock) that just rolls-over / wraps around. The initial value does not matter and the value cannot be reset. The free-running counter can be read. I am not sure if the free-running counter can trigger an interrupt.
 
-ARM/CPU Timer Predivider - The ARM/CPU Timer contains a register called 'timer pre-divider register'. It is described in chapter 14 of the Peripherals Manual. It's default value is 0x7D = 125. It is used to derive the ARM/CPU Timer frequency from the System Clock. The formula is: timer_clock = apb_clock / (pre_divider + 1). Initially
+ARM/CPU Timer Predivider - The ARM/CPU Timer contains a register called 'timer pre-divider register'. It is described in chapter 14 of the Peripherals Manual. It's default value is 0x7D = 125. (Note: The default value as described in the Peripherals Manually was not set during my tests! Set it yourself before using the ARM/CPU Timer!) It is used to derive the ARM/CPU Timer frequency from the System Clock. The formula is: timer_clock = apb_clock / (pre_divider + 1). Initially
 
 System Timer - A timer build into the GPU. It is described in chapter 12 of the Peripherals Manual. It's physical hardware address is 0x7E003000 but after mapping the ARM CPU sees it at 0x20003000. The CLO register at offset 0x04 (Ox20003004) contains the current timer value. The timer value is incremented with a frequency of 1 Mhz. That means the frequency is fixed and not tied to the System Clock.
 
@@ -53,8 +53,8 @@ It combines to functions into one peripheral.
 
 It supports
 
-1. a timer (ARM Timer)
-2. a free running counter (ARM counter).
+1. a timer (ARM/CPU Timer)
+2. a free running counter (ARM/CPU counter).
 
 There is another set of timers in the GPU which are used for accurate timing but those timers are not described here.
 The timers in the GPU are called system timers.
@@ -66,35 +66,38 @@ It uses two registers
 1. control register (Address: base + 0x40C)
 2. free running counter register (Address: base + 0x420)
 
-The free running counter has it's own register (Free running counter at offset 0x420)
+The free running counter has it's own register (Free running counter at offset 0x420) that contains the current value of the free running counter. The value is continuously decremented and the configured frequency and rolls-over / wraps around. The initial value does not matter and the value cannot be reset. The free-running counter can be read. I am not sure if the free-running counter can trigger an interrupt.
 
-The pre-scale bits in the control register affect the ARM Timer free running counter.
+The pre-scale bits in the control register affect the ARM Timer free running counter's frequency.
+
 The formula is:
 
 ```
 switch (pre-scale bits) {
 
     case 00 :
-        clock / 1 (No pre-scale)
+        system_clock / 1 (No pre-scale)
         break;
 
     case 01 :
-        pre-scale is clock / 16
+        system_clock / 16
         break;
 
     case 10 :
-        pre-scale is clock / 256
+        system_clock / 256
         break;
 
     case 11 :
-        pre-scale is clock / 1
+        system_clock / 1
         break;
 }
 ```
 
-That means that the value in the free running counter register is decremented. The rate/frequency at which the value is decremented is derived from the system clock (GPU clock). Derived means that the system clock is taken and devided. The factor to devide by is controlled by the pre-scale bits in the control register. There are two bits, which leads to four possible values outlined by the pseudo code above.
+That means that the value in the free running counter register is decremented. The rate/frequency at which the value is decremented is derived from the system clock (GPU clock). Derived means that the system clock is taken and devided. The factor to devide by is controlled by the pre-scale bits in the control register. There are two bits, which makes four different values possible outlined by the pseudo code above.
 
 The value can be read from the free running counter by reading the free running counter register at offset (Address: base + 0x420).
+
+After reading that value, the reaction is application dependant. The application designer has to devise their own algorithm to use that value. One possible way is to compute a delta of ticks and perform an action when the delta reaches a certain value.
 
 ### ARM timer (aka. CPU Timer)
 
@@ -108,7 +111,7 @@ The timer uses three registers:
 
 ### ARM/CPU Timer Frequency
 
-The ARM CPU timer has a load register in which the application can put a value. The CPU Timer will first copy that value to a value register. It will then decrement that value at it's frequency. Once the value register contains the value 0, two things happen:
+The ARM CPU timer has a load register in which the application can put a value. The CPU Timer will first copy that value to a value register. It will then decrement that value at it's configured frequency. Once the value register contains the value 0, two things happen:
 
 - The value register is again filled with the value stored in the load register
 - The timer interrupt is signaled/thrown
@@ -121,7 +124,9 @@ The frequency is derived from the system clock.
 
 Now what exactly is the system clock and what does 'derived' mean exactly?
 
-The pre-divider register affects the clock of the timer. The formula is:
+The system clock aka. apb_clock is the frequency of the GPU. That frequency is used as a base to derive the frequency of UART, SPI, ... and also the ARM timer peripheral. On a Raspberry Pi 1 this value is 250 Mhz by defaut. It can be configured in config.txt using the core_freq property. (Watch out to not overclock too hard and burn your chips up!)
+
+The pre-divider register affects the clock of the ARM / CPU timer. The formula is:
 
 ```
 timer_clock = apb_clock / (pre_divider + 1)
@@ -129,17 +134,17 @@ timer_clock = apb_clock / (pre_divider + 1)
 
 The Peripherals Manual describes that the default value for pre_divider is 0x7D = 125. There seems to be a problem with this default value. During my tests, I never set the pre_divider in the hopes that the default value is used. I got wrong results. After setting the value of the pre_divider register manually, the problems were gone. My suggestion generally is to set default values manually to make sure the hardware is set up correctly under all circumstances.
 
-The Peripherals Manual describes that the timer is not suitable for real-time clocking as described in the Peripherals Manual but as a test it is used anyways.
+The Peripherals Manual describes that the timer is not suitable for real-time clocking as described in the Peripherals Manual but as a test it is used here anyways.
 
 ### Triggering the ARM / CPU Timer Frequency once a second.
 
 In order to trigger an interrupt once second
 
 1. Interrupts have to be set up correctly
-2. A correct pre_deviver value has to be set
+2. A correct pre_devider value has to be set
 3. A correct value has to be loaded into the value register.
 
-Let's assumed the interrupts are set up, here is an example for computing the value and the pre_divider value.
+Let's assume the interrupts are [set up correctly](https://www.valvers.com/open-software/raspberry-pi/bare-metal-programming-in-c-part-4/), here is an example for computing the value and the pre_divider value.
 
 When the default value 0x7D = 125 is written into the pre_divider register of a Raspberry Pi 1 that has a GPU clock of 250 MHz (= apb_clock), the ARM / CPU counter will have a frequency of:
 
@@ -153,24 +158,13 @@ timer_clock = apb_clock / (pre_divider + 1)
 
 If the value 1984127 = 0x1E467F is written into the value register, then the frequency of the system clock will count down to 0 and trigger the interrupt about every second.
 
-### Use that timer with interrupts
+### Using the ARM / CPU timer with interrupts
 
-To use that timer with interrupts (described in https://www.valvers.com/open-software/raspberry-pi/bare-metal-programming-in-c-part-4/)
+To use that timer with interrupts (described [here](https://www.valvers.com/open-software/raspberry-pi/bare-metal-programming-in-c-part-4/))
 
 - Enable the ARM Timer Interrupt in the Interrupt Controller
 - Enable interrupts globally
 - Enable and configure the ARM Timer peripheral
-
-Here: https://stackoverflow.com/questions/14617241/mmap-get-a-64-bit-value-with-an-offset it says:
-The system timer counts up every microsecond.
-
-Here: https://mindplusplus.wordpress.com/2013/05/21/accessing-the-raspberry-pis-1mhz-timer/ it says:
-
-> According to the official Broadcom 2835 documentation, the free-running 1MHz timer resides at ARM address 0x20003004
-
-Just as a reminder a 1 MHZ clock ticks every microsecond (!= millisecond).
-
-Micro = 10 ^ -6 = 1 / 1000000 = 1 Million Herz = 1 Mega Hertz.
 
 # System Timers
 
@@ -179,3 +173,16 @@ The Peripherals Manual makes a difference between the ARM Timer == ARM clock and
 > The clock from the ARM timer is derived from the system clock. This clock can change dynamically e.g. if the system goes into reduced power or in low power mode. Thus the clock speed adapts to the overal system performance capabilities. For accurate timing it is recommended to use the system timers.
 
 The System Timer is described in chapter 12 of the Peripherals Manual. The system timers are part of the GPU and can be used for accurate timing.
+
+Here: https://stackoverflow.com/questions/14617241/mmap-get-a-64-bit-value-with-an-offset it says:
+The system timer counts up every microsecond.
+
+Here: https://mindplusplus.wordpress.com/2013/05/21/accessing-the-raspberry-pis-1mhz-timer/ it says:
+
+> According to the official Broadcom 2835 documentation, the free-running 1MHz timer resides at ARM address 0x20003004
+
+Just as a reminder a 1 MHZ clock ticks every microsecond (!= millisecond (ms)).
+
+```
+Micro = 10 ^ -6 = 1 / 1000000 = 1 Million Herz = 1 Mega Hertz.
+```
