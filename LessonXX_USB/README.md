@@ -33,7 +33,7 @@
 
 ## What is USB
 
-The Universal Serial Bus is a way to connect external phyiscal devices to a computer systems.
+The Universal Serial Bus is a way to connect external phyiscal devices to a computer system.
 
 - It promisses hot-plugging capabilities, that means external phyiscal devices can be connected while the operating system is running.
 - USB also defines several connector plugs (USB-Type-A (the common plug found on mice and keyboards), USB-Type-B found at the Arduino, UST-Type-C found at the Raspberry Pi 4) so that a common interface is defined.
@@ -83,7 +83,7 @@ There are even more terms: 'composite device', 'interface', '(interface) descrip
 
 The physical structure of USB does not matter that much to USB software.
 
-On the software level, the tology does not matter. It does not matter through how many hubs a device has to send messages to talk to the host. Also all functions in a compound device are treated as independant entities on the software side of things. It does not matter inside which physical hardware a device lives.
+On the software level, the topology does not matter. It does not matter through how many hubs a device has to send messages to talk to the host. Also all functions in a compound device are treated as independant entities on the software side of things. It does not matter inside which physical hardware a device lives.
 
 On the bus, every device is identified by a unique address. The address acts as a ID.
 
@@ -91,9 +91,9 @@ As the name implies, USB is a bus system. As such several components are connect
 
 In theory all components connected to a bus can all send at the same time and they all can receive all data on the bus at the same time. This will cause signal collisions on the bus and hence a scheme that organizes the bus communication is needed.
 
-In USB, the bus will have exactly one USB host connected to it and a [maximum number of 127](https://de.wikipedia.org/wiki/Universal_Serial_Bus) devices. The host is installed on a motherboard in most cases. A host contains a 'Host Hub' internally. The devices are external devices connected to the bus via USB plugs / cables. The devices are connected to hubs via these plugs and cables. Hubs can be connected to hubs or devices and form a hierarchy of which the root node is the Host Hub inside the Host controller (See Figure 4-1. Bus Topology of the USB 2.0 base specification (usb_20.pdf)). In the USB Topology, devices are called functions.
+In USB, the bus will have exactly one USB host connected to it and a [maximum number of 127](https://de.wikipedia.org/wiki/Universal_Serial_Bus) devices. The host is installed on a motherboard in most cases. A host contains a 'Host Hub' internally. The devices are connected to hubs and the hubs are connected to the bus via plugs and cables. Hubs can be connected to hubs or devices and form a hierarchy of which the root node is the Host Hub inside the Host controller (See Figure 4-1. Bus Topology of the USB 2.0 base specification (usb_20.pdf)). In the USB Topology, devices are called functions.
 
-The host is the only device that can send data onto the bus at will (See 4.4 Bus Protocol in USB 2.0 Spec). All other devices are not allowed to send data at will but only when the host asks them to send data. The host will poll the devices and ask them if they want to send data. It then allows those devices to send data. The devices will send their data and then keep quite again.
+The host is the only device that can send data onto the bus at will (See 4.4 Bus Protocol in USB 2.0 Spec). All other devices are not allowed to send data at will but only when the host asks them to send data. The host will poll the devices and ask them if they want to send data. It then allows those devices to send data. The devices will send their data and then keep quite again. (There is a power up feature which is the only exception to this rule. The power up feature allows a device to send data to the host to power up the host. This is how your PC comes back from hibernation when you move the mouse around or type on the keyboard.)
 
 From the USB 2.0 Specification:
 
@@ -229,7 +229,7 @@ The USB Core is a DesignWare Hi-Speed USB 2.0 On-The-Go (HS OTG) Controller. Thi
 
 Let's use the acronym DWC for [D]esign[W]are Hi-Speed USB 2.0 On-The-Go (HS OTG) [C]ontroller.
 
-In the following the CSUD USB code is analyzed. It is a freestanding git repository containing USB code for the hardware on the raspberry PI. It is easier to understand than the code in the Linux kernel at least for a beginner that has no experience with the linux kernel.
+In the following the [CSUD USB Driver](https://github.com/Chadderz121/csud) code is analyzed. It is a freestanding git repository containing USB code for the hardware on the raspberry PI. It is easier to understand than the code in the Linux kernel at least for a beginner that has no experience with the linux kernel.
 
 HCD stands for host controller driver which is defined at the [CSUD git page](https://github.com/Chadderz121/csud). HCD is the name of one of the components of the CSUD software.
 
@@ -243,10 +243,9 @@ HCD stands for host controller driver which is defined at the [CSUD git page](ht
 | Phy  | The part of the electronic circuit (USB, Ethernet, ...) that converts to and from the digital signals of the computer system and the signals on the physical transmission medium.                                                                                                                                                                                              |
 | ULPI | The Standard for High-Speed USB PHYs [Mentor Page](https://www.mentor.com/products/ip/usb/usb20otg/phy_interfaces)                                                                                                                                                                                                                                                             |
 | OTG  | USB On-The-Go is a supplement to the USB 2.0 Specification released in 2001. Users wanted to connect their peripherals together directly. To allow this, USB On-The-Go defines limited host capabilities that every device can have which allows arbitrary devices to talk over USB without requiring a full featured host in between that orchestrates the BUS communication. |
-
-|HNP| The host negotiation protocol. Part of the USB specification. |
-|SRP| Session request protocol.|
-|DMA| Direct Memory Access.|
+| HNP  | The host negotiation protocol. Part of the USB specification.                                                                                                                                                                                                                                                                                                                  |
+| SRP  | Session request protocol.                                                                                                                                                                                                                                                                                                                                                      |
+| DMA  | Direct Memory Access.                                                                                                                                                                                                                                                                                                                                                          |
 
 ### DWC Core Registers (TDWCRegisters)
 
@@ -308,7 +307,7 @@ The utility functions check which register should be read and in the case of a l
 
 The registers are modeled via C-structs in designware20.h by the CoreGlobalRegs structure which contains substructures for the registers. Looking at the Hardware register, this register contains more than 32 bit because there are four 32 bit registers inside the DWC describing it's hardware status.
 
-All structus are annotated with 'packed' attribute. This tells the compiler to not performa any layouting such as padding bytes into words for faster access by the CPU but to layout the structure into memory exactly as defined by the programmer even if this causes performance loss. The reason is that the structures have to be used as overlays over the memory mapped areas that contain the hardware registers and the overlay has to match every single bit exactly. The compiler reorganizing the layout would cause the application to read the wrong bits and wrong data.
+All structus are annotated with 'packed' attribute. This tells the compiler to not perform any layouting such as padding bytes into words for faster access by the CPU but to layout the structure into memory exactly as defined by the programmer even if this causes performance loss. The reason is that the structures have to be used as overlays over the memory mapped areas that contain the hardware registers and the overlay has to match every single bit exactly. The compiler reorganizing the layout would cause the application to read the wrong bits and wrong data.
 
 I took the liberty to add comments to add the register names and their offsets to the individual structs and to add whitespace lines to layout the code a little for better readbility.
 
@@ -927,7 +926,7 @@ ClearReg(Power);
 WriteThroughReg(Power);
 ```
 
-### Set the clock rote in the UBS host
+### Set the clock rate in the UBS host
 
 ???
 
@@ -1089,12 +1088,16 @@ It looks like as if the root hub inside the USB host controller is not really qu
 
 ## Log of driver output
 
-I modified the driver to print logging messages to UART. The the build of the [input01](https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/input01.html) was modified to not use the precompiled version of the CSUD driver library but the custom compiled version that contains the additional log statements.
+I modified the driver to print logging messages to UART. The makefile of the [input01](https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/input01.html) example was modified to not use the precompiled version of the CSUD driver library but the custom compiled version that contains the additional log statements.
 
 Also for log messages to appear on UART, the [input01](https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/input01.html) example was modified.
-For that, a uart.s file was added to the input01 example and in uart.s the function LogPrint() is implement and it makes use of the writeCharacter() function to output a string of a predefined length to UART. The CSUD driver calls LogPrint() for logging but it does not provied an implementation. The host operating system hast to provide an implementation of LogPrint(). The linker will combine the driver and the operating system and the call is made to the correct LogPrint() function implementation.
+For that, a uart.s file was added to the input01 example and in uart.s the function LogPrint() is implement and it makes use of the writeCharacter() function to output a string of a predefined length to UART.
 
-The code is horrible but I am a beginner with assembly so have mercy:
+The CSUD driver calls LogPrint() for logging but it does not provide a implementation for LogPrint(). Instead, the host operating system hast to provide a implementation of LogPrint(). The implementation can log to whatever target it wants. It could log to a file, to UART, to dmesg, to the network, ... In this cas LogPrint() logs the message to UART.
+
+The linker will combine the driver and the operating system implementation which then calls the correct LogPrint() function implementation.
+
+The code for the UART LogPrint() is horrible but I am a beginner in assembly programming so please have mercy.
 
 ```ASM
 /* Check if another character can be written and if the fifo is empty, write the character */
@@ -1411,14 +1414,14 @@ The recursion for device enumeration over all hubs in CSUD works as follows:
 
 The user of CSUD has to call the UsbInitialise() method at some point to set up the driver. This is part of the API.
 
-UsbInitialise() does some preparation and eventually call UsbAttachRootHub().
+UsbInitialise() does some preparation and eventually calls UsbAttachRootHub().
 
 UsbAttachRootHub() calls UsbAttachDevice() for the root hub inside the USB controller.
 
 UsbAttachDevice() retrieves the interfaces of a device and the classes on the interfaces. It then performs a lookup for a configurable
-function pointer for a specific device class. In the case of the root hub, the lookup returns a method that can attach USB hubs.
+function pointer for a specific device class. In the case of the root hub, the lookup returns a method that can attach USB hubs. When you extend CSUD and when you want to support drivers for specific devices, you have to list a function pointer to your driver in the array here!
 
-That method is called HubAttach(), it is implemented in hub.c and it is then invoked.
+That method for hubs is called HubAttach(), it is implemented in hub.c and it is then invoked.
 
 HubAttach() has a loop at the very end that iterates over all ports of the hub and tries to detect a connected device or hub on that port by calling HubCheckConnection()
 
@@ -1432,9 +1435,9 @@ HubCheckConnection() calls HubPortConnectionChanged().
 
 HubPortConnectionChanged() calls UsbAllocateDevice() and UsbAttachDevice().
 
-This call to UsbAttachDevice() causes the recusion during device enumeration.
+This call to UsbAttachDevice() causes the recursion during device enumeration because UsbAttachDevice() is the way the recursion go to this point in the first place.
 
-From UsbAttachDevice() the recursion can detect functions such as keyboards, mice, USB network controllers or it can detect Hubs that in turn
+From UsbAttachDevice(), the recursion can detect functions such as keyboards, mice, USB network controllers or it can detect Hubs that in turn
 are connected to more functions or hubs. This is how the recursion detects an entire tree and all functions within that tree through recursion.
 
 ## CSUD Platform functions
@@ -1453,15 +1456,21 @@ print	<-> LogPrint
 
 The listing th in readme.txt shows that the four libc functions, malloc, free, memcpy and print are wrapped in functions that CSUD will call. This makes the CSUD driver portable to every operating system.
 
-### malloc, MemoryAllocte
+LogPrint was already discussed above and it is used to retrieve UART output from the driver.
+
+### malloc, MemoryAllocate
 
 The purpose of malloc() is to provide dynamically allocated memory to a process. In contemporary operating systems, when the MMU is used, memory is organized in pages or sections. Those pages or sections are very large. If a process needs 8 byte for example, wasting an entire page for one variable is not feasable. Instead a heap data structure is placed on top of pages and sections. The heap intially grabs a page and manages memory within that page. When the heap outgrows the page, it requests another page and keeps growing. When memory is returned, the heap shrinks and also returns pages to the MMU in the process.
 
 The heap is basically a fine grained memory allocation mechanism and is built on top of the coarse grained memory mechanism of paging.
 
-If no paging is used, if the MMU is not turned on yet, the heap will just organize memory in physical address space.
+If no paging is used, if the MMU is not turned on yet, the heap will just organize memory in physical address space without requesting pages or sections.
 
-The reference implementation for MemoryAllocate for the Raspberry PI in CSUD is contained in platform.c. A variable called Heap is defined that points to an array of 0x4000 bytes.
+There are lots and lots of ways to implement a thread. A popular version is the buddy allocation algorithm described in the series of books 'The Art of Computer Programming' by Donald E. Knuth.
+
+The reference implementation provided with CSUD for MemoryAllocate for the Raspberry PI in CSUD is contained in platform.c. It does not use buddy allocation bit it uses a approach based on a linked list of allocation objects.
+
+A variable called Heap is defined that points to an array of 0x4000 bytes.
 
 ```C
 u8 Heap[0x4000] __attribute__((aligned(8))); // Support a maximum of 16KiB of allocations
@@ -1511,6 +1520,6 @@ MemoryDeallocate() will remove the HeapAllocation element from the list and decr
 
 ### memcpy, MemoryCopy
 
-loops over the amounts of bytes specified in the length parameter and copies the source byte to the destination bytes. Source and destination are addresses specified as parameters.
+Loops over the amounts of bytes specified in the length parameter and copies the source byte to the destination bytes. Source and destination are addresses specified as parameters.
 
 The method is very straight-forwared. Usually copying individual bytes is very slow compared to buffered transfers where blocks of memory are copied. This method could probably be optimised.
