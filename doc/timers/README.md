@@ -51,7 +51,7 @@ APB Clock - ??? Is this maybe the same thing as the system clock? Or is it the A
 
 The CPU or ARM timer peripheral is documented in chapter 14 of the BCM2835-ARM-Peripherals document.
 
-It combines to functions into one peripheral.
+It combines two functions into one peripheral.
 
 It supports
 
@@ -68,7 +68,7 @@ It uses two registers
 1. control register (Address: base + 0x40C)
 2. free running counter register (Address: base + 0x420)
 
-The free running counter has it's own register (Free running counter at offset 0x420) that contains the current value of the free running counter. The value is continuously decremented and the configured frequency and rolls-over / wraps around. The initial value does not matter and the value cannot be reset. The free-running counter can be read. I am not sure if the free-running counter can trigger an interrupt.
+The free running counter has it's own register (Free running counter at offset 0x420) that contains the current value of the free running counter. The value is continuously decremented at the configured frequency and rolls-over / wraps around. The initial value does not matter and the value cannot be reset. The free-running counter can be read. I am not sure if the free-running counter can trigger an interrupt.
 
 The pre-scale bits in the control register affect the ARM Timer free running counter's frequency.
 
@@ -118,7 +118,7 @@ The ARM CPU timer has a load register in which the application can put a value. 
 - The value register is again filled with the value stored in the load register
 - The timer interrupt is signaled/thrown
 
-The Frequency of the CPU Timer, the rate at which it decrements the value register, is described in the Peripherals document as
+The frequency of the CPU Timer, the rate at which it decrements the value register, is described in the Peripherals document as
 
 > The clock from the ARM timer is derived from the system clock. This clock can change dynamically e.g. if the system goes into reduced power or in low power mode. Thus the clock speed adapts to the overal system performance capabilities. For accurate timing it is recommended to use the system timers.
 
@@ -126,7 +126,7 @@ The frequency is derived from the system clock.
 
 Now what exactly is the system clock and what does 'derived' mean exactly?
 
-The system clock aka. apb_clock is the frequency of the GPU. That frequency is used as a base to derive the frequency of UART, SPI, ... and also the ARM timer peripheral. On a Raspberry Pi 1 this value is 250 Mhz by defaut. It can be configured in config.txt using the core_freq property. (Watch out to not overclock too hard and burn your chips up!)
+The system clock aka. apb_clock is the frequency of the GPU. That frequency is used as a base to derive the frequency of UART, SPI, ... and also the ARM timer peripheral. On a Raspberry Pi 1 this value is 250 Mhz by defaut. It can be configured in config.txt using the core_freq property. (Watch out to not overclock too hard and damage your chips!)
 
 The pre-divider register affects the clock of the ARM / CPU timer. The formula is:
 
@@ -140,7 +140,7 @@ The Peripherals Manual describes that the timer is not suitable for real-time cl
 
 ### Triggering the ARM / CPU Timer Frequency once a second.
 
-In order to trigger an interrupt once second
+In order to trigger an interrupt every second
 
 1. Interrupts have to be set up correctly
 2. A correct pre_devider value has to be set

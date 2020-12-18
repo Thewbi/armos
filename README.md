@@ -24,6 +24,9 @@ Raspbian OS Programming with the Raspberry Pi
 - http://bob.cs.sonoma.edu/IntroCompOrg-RPi/sec-inters.html
 - https://www.pieter-jan.com/node/15
 - https://learn.sparkfun.com/tutorials/raspberry-gpio/all
+- https://github.com/eryjus/century/
+- https://www.raspberrypi.org/magpi-issues/Projects_Book_v1.pdf
+- https://isometimes.github.io/rpi4-osdev/part8-breakout-ble/
 
 ## ARM Documentation
 
