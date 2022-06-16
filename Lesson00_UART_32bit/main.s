@@ -55,11 +55,15 @@ loop:
     mov r2, #0x20
     bl writeCharacter
 
+    /* output a string */
+    ldr r0, =teststring
+    mov r1, #0x05
+    bl LogPrint
+
     /* wait */
     bl delay
 
     bal loop
-
 
 /* Make the system wait */
 delay:
@@ -74,19 +78,115 @@ wait:
 
 
 
+
 /* Check if another character can be written and if the fifo is empty, write the character */
+/* The character to output is stored in r2 */
 writeCharacter:
+    /* r0 is GPIO base, 0x20200000 */
+    mov r0, #0x20000000
+    mov r1, #0x00200000
+    orr r0, r0, r1
+
+    /* r1 is UART base */
+    orr r1, r0, #0x1000
+
     ldr r3, [r1, #0x18]
     and r3, r3, #0x20
     cmp r3, #0
+
+    /*str r2, [r1, #0x0000] actually writes a character to the UART */
     bne writeCharacter
-    str r2, [r1, #0x0000] /*str r2, [r1, #0x0000] actually writes a character to the UART */
+    str r2, [r1, #0x0000]
 
     /* return to caller. r15 is the programm counter. r14 is the link register */
     mov pc, lr
 
 
 
+
+/* Writes a string of n characters to the UART */
+/* r0 the address of the first character of the string to output */
+/* r1 the length of the string */
+/* USAGE: */
+/* ldr r0, =teststring */
+/* mov r1, #0x05 */
+/* bl LogPrint */
+.globl LogPrint
+LogPrint:
+    // Load the first value of R0 into R2 and skip
+    // ahead one character(8 bits)
+    //
+    // Note the "B" in LDR. It indicates that you load ONLY 1 byte!
+    ldrb r2, [r0], #1
+
+    cmp r1, #0x00
+    beq returnFromLogPrint
+
+    /* nested function call, save link register */
+    mov r9, r0
+    mov r10, r1
+    mov r11, lr
+
+    /* call write character */
+    bl writeCharacter
+
+    /* nested function call, restore link register */
+    mov lr, r11
+    mov r1, r10
+    mov r0, r9
+
+    /* decrement r1 */
+    sub r1, #0x01
+
+    b LogPrint
+
+returnFromLogPrint:
+    /* return to caller. r15 is the programm counter. r14 is the link register */
+    mov pc, lr
+
+
+
+
+
+
+
+/* Needed for the USB CSUD library logging */
+/* */
+/* USAGE: */
+/* ldr r0, =teststring */
+/* bl LogPrint */
+.globl LogPrintZeroTerminated
+LogPrintZeroTerminated:
+    // Load the first value of R0 into R2 and skip
+    // ahead one character(8 bits)
+    //
+    // Note the "B" in LDR. It indicates that you load ONLY 1 byte!
+    ldrb r2, [r0], #1
+
+    cmp r2, #0x00
+    beq returnFromLogPrintZeroTerminated
+
+    /* nested function call, save link register */
+    mov r10, r0
+    mov r11, lr
+
+    /* call write character */
+    bl writeCharacter
+
+    /* nested function call, restore link register */
+    mov lr, r11
+    mov r0, r10
+
+    b LogPrintZeroTerminated
+
+returnFromLogPrintZeroTerminated:
+    /* return to caller. r15 is the programm counter. r14 is the link register */
+    mov pc, lr
+
+
+
+
+.globl initUart
 initUart:
     /* r0 is GPIO base, 0x20200000 */
     mov r0, #0x20000000
@@ -184,3 +284,9 @@ initUart:
 
     /* return to caller. r15 is the programm counter. r14 is the link register */
     mov pc, lr
+
+
+/* .section .data  */
+    /* ASCIZ will automatically zero terminate */
+    /* https://developer.arm.com/documentation/100067/0611/armclang-Integrated-Assembler/String-definition-directives */
+    teststring: .asciz "TheTestString"

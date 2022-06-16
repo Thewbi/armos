@@ -2,6 +2,8 @@
 
 ## Links
 
+- https://www.mikrocontroller.net/articles/USB-Tutorial_mit_STM32
+- https://www.elektronikpraxis.vogel.de/usb-richtig-integrieren-a-174533/?p=2
 - http://www.usbmadesimple.co.uk/ums_1.htm
 - https://www.amazon.de/USB-The-Universal-Serial-Bus/dp/1468151983/ref=sr_1_1?ie=UTF8&qid=1341688212&sr=8-1
 - https://www.raspberrypi.org/forums/viewtopic.php?t=185990
@@ -26,6 +28,7 @@
 - https://github.com/Chadderz121/csud
 - https://github.com/LdB-ECM/Raspberry-Pi/tree/master/Arm32_64_USB
 - https://github.com/ataradov/dgw/tree/master/embedded
+- https://embedded-xinu.readthedocs.io/en/latest/arm/rpi/Synopsys-USB-Controller.html
 
 ## USB Implementations On Microcontrollers
 
@@ -122,7 +125,7 @@ An endpoint is defined by
 - endpoint number
 - error handling mechanism
 - maximum packet size
-- transfer type ()
+- transfer type (Control, Bulk, Interrupt, Isochronous)
 - direction (IN or OUT from host perspective)
 
 A 'endpoint descriptor' is ???. Each endpoint descriptor is a block of information that tells the host what it needs to know about the endpoint in order to communicate with it.
@@ -143,6 +146,22 @@ Bulk is for sending large blobs of data such as files.
 Interrupt is used by keyboard and mice.
 
 Isochronous does not perform error detection and is used for audio, video and other data streams. Besides a transfer type, a pipe is also characterized by either being a stream or a message pipe. Control transfers use bidirectional message pipes. All other transfer types use unidirectional stream pipes.
+
+Every transfer consists of one or more transactions.
+
+From the USB 2.0 specification chapter 4.7 Data Flow Types:
+
+```
+The USB architecture comprehends four basic types of data transfers:
+
+• Control Transfers: Used to configure a device at attach time and can be used for other device-specific purposes, including control of other pipes on the device.
+
+• Bulk Data Transfers: Generated or consumed in relatively large and bursty quantities and have wide dynamic latitude in transmission constraints.
+
+• Interrupt Data Transfers: Used for timely but reliable delivery of data, for example, characters or coordinates with human-perceptible echo or feedback response characteristics.
+
+• Isochronous Data Transfers: Occupy a prenegotiated amount of USB bandwidth with a prenegotiated delivery latency. (Also called streaming real time transfers).
+```
 
 'Message Pipe': each transfer starts with a setup transaction containing a request. During the transfer the host and the device exchange data. The data is exchanged in transactions. There is at least one transaction that transfers data in both transactions.
 
@@ -210,6 +229,346 @@ struct UsbDeviceDescriptor {
 	u8 ConfigurationCount; // +0x11
 } __attribute__ ((__packed__));
 ```
+
+## Control Transfers
+
+A control transfer has a defined format, which the other transfers (Bulk, Interrupt and Isochronous) do not have.
+
+The format consists of three stages
+
+1. Setup Stage
+2. Data Stage (optional)
+3. Status Stage (success or failure of the transfer)
+
+If the control transfer is
+
+- a control read transfer, the device sends data in the data stage
+- a control write transfer, the host sends data in the data stage or the data stage is absent
+
+Each of the stages consists of one or more transactions, that means a transfer consists of one or more transactions.
+
+The hierarchy is transfer > transaction > packet.
+
+### Transactions
+
+Transactions are made up of packets. The packets are grouped into phases.
+
+A transaction has up to three phases in the following sequence:
+
+- Token Phase
+- Data Phase
+- Handshake Phase
+
+Each Phase consists of one or two packets.
+
+### Endpoints and Pipes
+
+Hosts do not have endpoints. Only devices contain endpoints. A endpoint is identified by a touple (or a composite key) of an ID and a direction.
+
+- The ID is a number between 0 and 15
+- The direction is either IN or OUT defined from the host's perspective.
+
+The control endpoint is special. It always has the ID 0 and it has to support IN and OUT direction at the same time. Every device has to provide a control endpoint at ID 0.
+
+A device may provide more control endpoints than the endpoint at id 0.
+
+Given the information above, a device may have a endpoint 1 in IN direction and also a endpoint 1 in OUT direction for example. This is possible because an endpoint is identified by the composite key (ID, direction). (1, IN) and (1, OUT) are keys for two distinct objects.
+
+### Packets
+
+https://www.beyondlogic.org/usbnutshell/usb3.shtml
+
+I am not sure but I think, the USB phy chips take care of packet creation. It has not have to be programmed in software, I think.
+
+There are
+
+- token packets (Format is: Sync|PID|ADDR|ENDP|CRC5|EOP)
+- data packets (Format is: Sync|PID|Data|RC16|EOP)
+- handshake packets (Format is: Sync|PID|EOP)
+- start of frame packets (Format is: Sync|PID|Frame Number|CRC5|EOP)
+
+token packets are used during the token phase of a transaction. One prominent token packet is the setup packet.
+
+data packets are used during the data phase of a transaction.
+
+handshake packets are used during the handshake phase of a transaction.
+
+start of frame packets ???
+
+Packets have a PID (= Packet Identifier) field. The PID field is 4 bit long, hence there are 16 different types of packets. The 16 types of packets are equally distributed over the four options (token packets, data packets, handshake packets and start of frame packets)
+
+| Group     | PID Value | Packet Identifier      |
+| --------- | --------- | ---------------------- |
+| Token     | 0001      | OUT Token              |
+| Token     | 1001      | IN Token               |
+| Token     | 0101      | SOF Token              |
+| Token     | 1101      | SETUP Token            |
+| Data      | 0011      | DATA0                  |
+| Data      | 1011      | DATA1                  |
+| Data      | 0111      | DATA2                  |
+| Data      | 1111      | MDATA                  |
+| Handshake | 0010      | ACK Handshake          |
+| Handshake | 1010      | NAK Handshake          |
+| Handshake | 1110      | STALL Handshake        |
+| Handshake | 0110      | NYET (No Response Yet) |
+| Special   | 1100      | PREamble               |
+| Special   | 1100      | ERR                    |
+| Special   | 1000      | Split                  |
+| Special   | 0100      | Ping                   |
+
+You can see that the Packet Identifier 1101 creates a 'Setup Token' packet. Please do not confuse this 'Setup Token' packet with the Setup Packet that is send during the SETUP stage of a control transfer.
+
+The Setup Stage sends the following Setup Packet:
+
+```C
+/* USB Setup Packet Structure   */
+typedef struct {
+
+        union { // offset   description
+                uint8_t bmRequestType; //   0      Bit-map of request type
+
+                struct {
+                        uint8_t recipient : 5; //          Recipient of the request
+                        uint8_t type : 2; //          Type of request
+                        uint8_t direction : 1; //          Direction of data X-fer
+                } __attribute__((packed));
+        } ReqType_u;
+
+        uint8_t bRequest; //   1      Request
+
+        union {
+                uint16_t wValue; //   2      Depends on bRequest
+
+                struct {
+                        uint8_t wValueLo;
+                        uint8_t wValueHi;
+                } __attribute__((packed));
+        } wVal_u;
+
+        uint16_t wIndex; //   4      Depends on bRequest
+
+        uint16_t wLength; //   6      Depends on bRequest
+
+} __attribute__((packed)) SETUP_PKT, *PSETUP_PKT;
+```
+
+This definition is taken from https://github.com/felis/USB_Host_Shield_2.0
+
+The method
+
+```C
+uint8_t USB::ctrlReq(uint8_t addr, uint8_t ep, uint8_t bmReqType, uint8_t bRequest, uint8_t wValLo, uint8_t wValHi,
+        uint16_t wInd, uint16_t total, uint16_t nbytes, uint8_t* dataptr, USBReadParser *p);
+```
+
+creates this SETUP packet and sends it before starting the Data and the Status phases.
+
+Looking at https://www.beyondlogic.org/usbnutshell/usb6.shtml#SetupPacket and the section about 'Standard Device Requests' you can see
+that the methode crtReq() mainly has the exact parameters as the table about all Standard Device Requests.
+
+The tables columns bmRequestType, bRequest, wValue, wIndex, wLength, Data are used as parameters names for the parameters of the ctrlReq() function.
+
+This means that all those requests are implemented as control transfers and that each such transfer sends the SETUP packet during the setup stage. Within the setup stage, the SETUP packet is send via the three transaction Phases Token Data Handshake.
+
+The Book USB Complete by Jan Axelson contains the following table that shows that each transfer type (Control, Bulk, Interrupt and Isochronous) is made up of transactions and phases. The Control transfer is the only transfer that additionally implements stages via transactions.
+
+| Transfer Type| Number and Direction of Transactions | Phases (Packets) |
+| Control | Setup Stage |
+
+<style>
+table {
+border-collapse:collapse;
+}
+
+td {
+border: 1px solid #000;
+margin: 0;
+padding: 0.5em;
+}
+</style>
+
+<table>
+
+  <tr>
+    <td rowspan="1" colspan="1">
+      Transfer Type
+    </td>
+    <td rowspan="1" colspan="2">
+      Number and Direction of Transactions
+    </td>
+    <td rowspan="1" colspan="1">
+      Phases (Packets)
+    </td>
+  </tr>
+
+  <tr>
+    <td rowspan="9">
+      Control
+    </td>
+    <td rowspan="3">
+      Setup Stage
+    </td>
+    <td rowspan="3">
+      One (SETUP)
+    </td>
+    <td>
+      Token
+    </td>
+  </tr>
+
+   <tr>
+    <td>
+      Data
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      Handshake
+    </td>
+  </tr>
+
+  <tr>
+    <td rowspan="3">
+      Data Stage
+    </td>
+    <td rowspan="3">
+      Zero or more (IN or OUT)
+    </td>
+    <td>
+      Token
+    </td>
+  </tr>
+
+   <tr>
+    <td>
+      Data
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      Handshake
+    </td>
+  </tr>
+
+  <tr>
+    <td rowspan="3">
+      Status Stage
+    </td>
+    <td rowspan="3">
+      One (opposite direction of the transaction(s) in the Data stage or IN if there is no Data stage)
+    </td>
+    <td>
+      Token
+    </td>
+  </tr>
+
+   <tr>
+    <td>
+      Data
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      Handshake
+    </td>
+  </tr>
+
+  <tr>
+    <td rowspan="3">
+      Bulk
+    </td>
+    <td colspan="2" rowspan="3">
+      One or more (IN or OUT)
+    </td>
+    <td>
+      Token
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Data
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Handshake
+    </td>
+  </tr>
+
+  <tr>
+    <td rowspan="3">
+      Interrupt
+    </td>
+    <td colspan="2" rowspan="3">
+      One or more (IN or OUT)
+    </td>
+    <td>
+      Token
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Data
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Handshake
+    </td>
+  </tr>
+
+  <tr>
+    <td rowspan="3">
+      Isochronous
+    </td>
+    <td colspan="2" rowspan="3">
+      One or more (IN or OUT)
+    </td>
+    <td>
+      Token
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Data
+    </td>
+  </tr>
+
+</table>
+
+### Control Transfers in detail
+
+Remember, a control transfer consists of the three stages Setup, Data (optional) and Status in that order.
+
+The Setup stage consists of one transaction that consists of a single token packet with 'Setup' direction/type.
+The Data stage consists of zero or more transactions, consisting of packets of the 'IN' or 'OUT' direction/type.
+The Status stage consists of one transaction that consits of packets that have the inverse direction/type of the data stage or 'IN' if the was no Data stage.
+
+To start a control transfer, the host starts with a transaction for the Setup stage.
+
+That first transaction starts with a token packet that is called setup packet. The setup packet is a packet that uses the 'Setup' transaction type (transaction tpy is also called transaction direction) as opposed to the 'IN' or 'OUT' transaction type.
+
+The 'Setup' transaction type is like the OUT transaction type because the host will send this packet out to a device. When a device retrieves a packet with the 'Setup' transaction type, the device knows that the three stages Setup, Data and Status have begun. It probably internally activates a state machine.
+
+- Transfer 'Control'
+  - Setup Stage
+    - Transaction
+      - Token Phase
+      - Data Phase
+      - Handshake Phase
+  - Data Stage
+    - Transaction
+      - Token Phase
+      - Data Phase
+      - Handshake Phase
+  - Status Stage
+    - Transaction
+      - Token Phase
+      - Data Phase
+      - Handshake Phase
 
 ## Reading the Specification
 
@@ -1331,12 +1690,15 @@ UsbInitialise() ...
 .UsbSetAddress() ...
 .UsbReadDeviceDescriptor() ...
 .UsbGetDescriptor() ...
+.USBD: Attach Device SMSC LAN9512. Address:3 Class:255 Subclass:0 USB:2.0. 1 configurations, 0 interfaces.
 .UsbGetDescription() ...
 .USBD: Device Attached: SMSC LAN9512.
 .UsbConfigure() ...
 .UsbGetDescriptor() ...
 .UsbGetDescriptor() ...
 .UsbSetConfiguration() ...
+.UsbGetDescription() ...
+.UUsbAttachDevice(): No driver found for SMSC LAN9512!
 .HubChangePortFeature() ...
 .HubCheckConnection() ...
 .HubPortGetStatus() ...
@@ -1523,3 +1885,54 @@ MemoryDeallocate() will remove the HeapAllocation element from the list and decr
 Loops over the amounts of bytes specified in the length parameter and copies the source byte to the destination bytes. Source and destination are addresses specified as parameters.
 
 The method is very straight-forwared. Usually copying individual bytes is very slow compared to buffered transfers where blocks of memory are copied. This method could probably be optimised.
+
+## Device Endpoints
+
+Cref. USB 2.0 specification "4.6.3 Bus Enumeration" and "4.7 Data Flow Types".
+
+How are the endpoints of a device determined?
+
+Every USB device is able to describe itself, when asked for it's descriptors it will return a list of descriptors.
+
+To communicate with a USB device, data has to be sent to an endpoint. The list of endpoints for any device are determined by querying devices for their descriptors. The USB specification defines a input endpoint 0 and an output endpoint 0. Endpoint 0 is well known and hence is never queried. Endpoint 0 will return information about the device in the form of registers. All USB devices are required to implement an endpoint 0, according the USB 2.0 specification.
+
+When a device is connected to a hub operating in full-speed several things happen. The device is attached, it is powered and it is reset. It has to reset itself into a full-speed state on a full-speed hub. (That is the reason why the hard-coded root hub in the hard coded host controller of the DWC is set to a speed of full-speed). Pipes also have a pipe communication mode which is either Stream or Message. Whereas there is a structure defined for the data sned over Message pipes, the data in stream pipes is not formalized in any way.
+
+Talking to an endpoint is done over pipes. Pipes are typed, so they have one of the four possible types (Control, Bulk, Interrupt, Isochronous). Talking to endpoint 0 is done using a Control-Pipe. The Default Control Pipe is always a message pipe. There is actually a default pipe that is connected to endpoint 0 by default. The default pipe to endpoint 0 is established after a device is attached, powered and reset. Other pipes come into existence when the device is configured using control messages over the control pipe. The operating system has to enforce a FIFO usage over all processes that use the default control pipe. That means that the default control pipe can not be used by several processes concurrently but all requests are handled in a FIFO manner and the next requests only starts after the current request was completed.
+
+Descriptors are queried by using control messages.
+
+Interfaces are groups of endpoints. Client Software on the host talks to interfaces. When a interface is used, the data is actually exchanged over the endpoints that belong to that interface. A interface belongs to a higher abstraction layer and is based on the endpoint abstraction layer.
+
+There is a very good deciption of the layers and the pipes, interfaces and endpoints in section "5.3 USB Communication Flow" of the USB 2.0 specification. The depiction is "Figure 5-9. USB Host/Device Detailed View".
+
+Control over the default control pipe is send in three stages or phases.
+
+- configuration - one setup bus transaction is executed during the configuration phase
+- command - zero or more data transactions are used to exchange data
+- status - a status transaction either returns "success" or an error code
+
+### CSUD
+
+```
+- UsbGetDescriptor()
+  - UsbControlMessage()
+    - HcdSumbitControlMessage()
+      - HcdChannelSendWait()
+        - HcdPrepareChannel()
+          - SetReg()
+          - WriteThroughReg()
+          - ClearReg()
+        - HcdChannelSendWaitOne()
+        - ReadBackReg()
+
+- UsbSetAddress()
+  - UsbControlMessage()
+    - HcdSumbitControlMessage()
+      - HcdChannelSendWait()
+
+- UsbSetConfiguration()
+  - UsbControlMessage()
+    - HcdSumbitControlMessage()
+      - HcdChannelSendWait()
+```

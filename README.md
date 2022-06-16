@@ -27,6 +27,7 @@ Raspbian OS Programming with the Raspberry Pi
 - https://github.com/eryjus/century/
 - https://www.raspberrypi.org/magpi-issues/Projects_Book_v1.pdf
 - https://isometimes.github.io/rpi4-osdev/part8-breakout-ble/
+- https://www.codeproject.com/Articles/1158245/More-Fun-frustration-and-laughs-with-the-Pi-Part-I
 
 ## ARM Documentation
 

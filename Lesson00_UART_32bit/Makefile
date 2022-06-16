@@ -5,7 +5,7 @@
 #	A makefile script for generation of raspberry pi kernel images.
 ###############################################################################
 
-# The toolchain to use. 
+# The toolchain to use.
 # arm-none-eabi works, but there does exist arm-bcm2708-linux-gnueabi.
 ARMGNU ?= arm-none-eabi
 
@@ -27,7 +27,7 @@ MAP = kernel.map
 # The name of the linker script to use.
 LINKER = kernel.ld
 
-# The names of all object files that must be generated. Deduced from the 
+# The names of all object files that must be generated. Deduced from the
 # assembly code files in source.
 OBJECTS := $(patsubst $(SOURCE)%.s,$(BUILD)%.o,$(wildcard $(SOURCE)*.s))
 
@@ -38,16 +38,16 @@ all: $(TARGET) $(LIST)
 rebuild: all
 
 # Rule to make the listing file.
-$(LIST) : $(BUILD)output.elf
-	$(ARMGNU)-objdump -d $(BUILD)output.elf > $(LIST)
+$(LIST) : $(BUILD)kernel.elf
+	$(ARMGNU)-objdump -d $(BUILD)kernel.elf > $(LIST)
 
 # Rule to make the image file.
-$(TARGET) : $(BUILD)output.elf
-	$(ARMGNU)-objcopy $(BUILD)output.elf -O binary $(TARGET) 
+$(TARGET) : $(BUILD)kernel.elf
+	$(ARMGNU)-objcopy $(BUILD)kernel.elf -O binary $(BUILD)$(TARGET)
 
 # Rule to make the elf file.
-$(BUILD)output.elf : $(OBJECTS) $(LINKER)
-	$(ARMGNU)-ld --no-undefined $(OBJECTS) -Map $(MAP) -o $(BUILD)output.elf -T $(LINKER)
+$(BUILD)kernel.elf : $(OBJECTS) $(LINKER)
+	$(ARMGNU)-ld --no-undefined $(OBJECTS) -Map $(MAP) -o $(BUILD)kernel.elf -T $(LINKER)
 
 # Rule to make the object files.
 $(BUILD)%.o: $(SOURCE)%.s $(BUILD)
@@ -57,8 +57,11 @@ $(BUILD):
 	mkdir $@
 
 # Rule to clean files.
-clean : 
+clean :
 	-rm -rf $(BUILD)
 	-rm -f $(TARGET)
 	-rm -f $(LIST)
 	-rm -f $(MAP)
+
+run:
+	qemu-system-arm -kernel $(BUILD)kernel.elf -cpu arm1176 -m 256 -M versatilepb -no-reboot -nodefaults -display none -serial stdio
